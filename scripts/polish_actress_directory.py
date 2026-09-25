@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 
 ROOT = Path("public/ranking/actress")
-ASSET_VERSION = "20260925-2358"
+ASSET_VERSION = "20260925-2359"
 
 
 def clean_directory_page(path: Path) -> int:
