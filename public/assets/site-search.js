@@ -10,7 +10,7 @@
       const image = row.image ? `<div class="fc-img"><img src="${esc(row.image)}" alt="${esc(row.title)}" loading="lazy"></div>` : '';
       return `<a class="fc-card" href="/ranking/actress/${encodeURIComponent(row.id)}/">${image}<div class="fc-body"><strong>${esc(row.title)}</strong><span>${esc(row.ruby || '女優')}</span></div></a>`;
     }
-    return `<a class="fc-card" href="/products/${encodeURIComponent(row.id)}/"><div class="fc-img"><img src="${esc(row.image)}" alt="${esc(row.title)}" loading="lazy"></div><div class="fc-body"><strong>${esc(row.title)}</strong><span>${esc(row.maker || '')}</span><b>${esc(row.price || '')}</b></div></a>`;
+    return `<a class="fc-card" href="/products/view/?id=${encodeURIComponent(row.id)}"><div class="fc-img"><img src="${esc(row.image)}" alt="${esc(row.title)}" loading="lazy"></div><div class="fc-body"><strong>${esc(row.title)}</strong><span>${esc(row.maker || '')}</span><b>${esc(row.price || '')}</b></div></a>`;
   }
   function render(){
     const q = input.value.trim().toLowerCase();
