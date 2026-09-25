@@ -42,6 +42,12 @@ jobs:
           DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
         run: python scripts/build_large_taxonomy_directory.py
 
+      - name: Rebuild actress search data across full 50-on
+        env:
+          DMM_API_ID: ${{ secrets.DMM_API_ID }}
+          DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
+        run: python scripts/rebuild_actress_directory_balanced.py
+
       - name: Polish actress directory UI
         run: python scripts/polish_actress_directory.py
 
