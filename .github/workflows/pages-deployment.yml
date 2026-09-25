@@ -30,6 +30,9 @@ jobs:
           DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
         run: python scripts/build_fanza_api.py
 
+      - name: Move ranking PR disclosure below products
+        run: python scripts/move_ranking_pr_notice.py
+
       - name: Rewrite FANZA affiliate links for site ID
         run: python scripts/fix_fanza_affiliate_links.py
 
