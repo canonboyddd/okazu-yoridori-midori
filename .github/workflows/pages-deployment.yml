@@ -1,0 +1,45 @@
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to Cloudflare Pages
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Check site archive
+        id: site
+        shell: bash
+        run: |
+          if [ -f site.zip ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "site.zip is not in the repository yet; deployment skipped."
+          fi
+
+      - name: Extract site
+        if: steps.site.outputs.ready == 'true'
+        run: |
+          rm -rf public
+          mkdir -p public
+          unzip -q site.zip -d public
+
+      - name: Deploy
+        if: steps.site.outputs.ready == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy public --project-name=okazu-yoridori-midori --branch=main
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
