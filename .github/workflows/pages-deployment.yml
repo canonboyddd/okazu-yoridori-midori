@@ -15,22 +15,28 @@ jobs:
     name: Deploy to Cloudflare Pages
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
-      - name: Check site archive
+      - name: Check complete site archive
         id: site
         shell: bash
         run: |
-          if [ -f site.zip ]; then
+          if [ -f site_parts/complete.txt ]; then
             echo "ready=true" >> "$GITHUB_OUTPUT"
           else
             echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "site.zip is not in the repository yet; deployment skipped."
+            echo "Site upload is not complete yet; deployment skipped."
           fi
 
-      - name: Extract site
+      - name: Rebuild and verify site archive
         if: steps.site.outputs.ready == 'true'
+        shell: bash
         run: |
+          cat site_parts/part-* > site.zip.b64
+          base64 --decode site.zip.b64 > site.zip
+          EXPECTED_SHA="$(cat site_parts/complete.txt | tr -d '\r\n')"
+          ACTUAL_SHA="$(sha256sum site.zip | awk '{print $1}')"
+          test "$EXPECTED_SHA" = "$ACTUAL_SHA"
           rm -rf public
           mkdir -p public
           unzip -q site.zip -d public
