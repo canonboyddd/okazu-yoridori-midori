@@ -54,6 +54,15 @@ jobs:
           MAX_INDEXABLE_FILES: "18000"
         run: python scripts/build_full_catalog_upgrade.py
 
+      - name: Build DMM popularity-first actress ranking and 50-on data
+        env:
+          DMM_API_ID: ${{ secrets.DMM_API_ID }}
+          DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
+          DMM_POPULAR_ACTRESS_TARGET: "10000"
+          DMM_POPULAR_ACTRESS_MAX_PAGES: "500"
+          DMM_POPULAR_ACTRESS_ENRICH_MISSING: "300"
+        run: python scripts/build_dmm_popular_actresses.py
+
       - name: Bust ranking asset caches
         run: |
           find public -type f -name '*.html' -exec sed -i \
