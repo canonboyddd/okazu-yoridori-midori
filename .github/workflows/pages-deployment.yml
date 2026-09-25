@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   deployments: write
 
 jobs:
@@ -17,32 +17,101 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Check complete site archive
-        id: site
+      - name: Bootstrap site source from current Pages deployment
+        if: ${{ hashFiles('public/index.html') == '' }}
         shell: bash
         run: |
-          if [ -f site_parts/complete.txt ]; then
-            echo "ready=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "Site upload is not complete yet; deployment skipped."
+          python - <<'PY'
+          from pathlib import Path
+          from urllib.request import Request, urlopen
+          from urllib.parse import urlparse
+          import re
+
+          BASE = 'https://okazu-yoridori-midori.pages.dev'
+          UA = {'User-Agent': 'Mozilla/5.0 GitHub-Actions-Site-Migration/1.0'}
+          root = Path('public')
+          root.mkdir(parents=True, exist_ok=True)
+
+          def get(url):
+              req = Request(url, headers=UA)
+              with urlopen(req, timeout=30) as r:
+                  return r.read()
+
+          sitemap = get(BASE + '/sitemap.xml')
+          (root / 'sitemap.xml').write_bytes(sitemap)
+          xml = sitemap.decode('utf-8', 'replace')
+          urls = re.findall(r'<loc>(.*?)</loc>', xml)
+
+          for url in urls:
+              path = urlparse(url).path
+              if path == '/':
+                  dest = root / 'index.html'
+              elif path.endswith('/'):
+                  dest = root / path.lstrip('/') / 'index.html'
+              else:
+                  dest = root / path.lstrip('/')
+              dest.parent.mkdir(parents=True, exist_ok=True)
+              dest.write_bytes(get(url))
+
+          extras = [
+              '/404.html', '/robots.txt', '/ga4-check.html',
+              '/google11014fc80b2a37f0.html',
+              '/assets/style.css', '/assets/style-white-v2.css',
+              '/assets/favicon.png', '/assets/og-default.png', '/assets/logo-512.png',
+              '/assets/affiliate-config.js', '/assets/affiliate-compliance.js',
+              '/assets/app.js', '/assets/v6.js', '/assets/ga4-config.js', '/assets/ga4.js'
+          ]
+          for path in extras:
+              try:
+                  dest = root / path.lstrip('/')
+                  dest.parent.mkdir(parents=True, exist_ok=True)
+                  dest.write_bytes(get(BASE + path))
+              except Exception as e:
+                  print('optional fetch failed:', path, e)
+
+          headers = '''/*
+            X-Content-Type-Options: nosniff
+            Referrer-Policy: strict-origin-when-cross-origin
+            X-Frame-Options: SAMEORIGIN
+            Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+          /assets/*
+            Cache-Control: public, max-age=86400
+          '''
+          (root / '_headers').write_text(headers, encoding='utf-8')
+
+          approved = '当サイトはDMMアフィリエイトに参加しています。成果報酬リンクを掲載する場合は、広告・PRであることが分かるよう表示します。'
+          old1 = '当サイトはアフィリエイトプログラムへの参加を予定しています。審査通過後、広告・成果報酬リンクを掲載する場合は分かるように表示します。'
+          old2 = 'DMMアフィリエイト審査中です。承認後に成果報酬リンクを掲載する場合は、広告であることが分かるよう表示します。'
+          for p in root.rglob('*.html'):
+              s = p.read_text(encoding='utf-8', errors='replace')
+              s = s.replace(old1, approved).replace(old2, approved)
+              p.write_text(s, encoding='utf-8')
+
+          (root / 'assets' / 'affiliate-config.js').write_text(
+              'window.AFFILIATE_CONFIG = {\n'
+              '  approved: true,\n'
+              '  affiliateId: "okazumidori-001",\n'
+              '  apiId: "",\n'
+              '  note: "DMMアフィリエイト審査承認済み。API IDは未設定です。"\n'
+              '};\n',
+              encoding='utf-8'
+          )
+          PY
+
+      - name: Save bootstrapped site to GitHub
+        if: ${{ hashFiles('public/index.html') != '' }}
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public
+          if ! git diff --cached --quiet; then
+            git commit -m "Bootstrap Pages site source [skip ci]"
+            git push
           fi
 
-      - name: Rebuild and verify site archive
-        if: steps.site.outputs.ready == 'true'
-        shell: bash
-        run: |
-          cat site_parts/part-* > site.zip.b64
-          base64 --decode site.zip.b64 > site.zip
-          EXPECTED_SHA="$(cat site_parts/complete.txt | tr -d '\r\n')"
-          ACTUAL_SHA="$(sha256sum site.zip | awk '{print $1}')"
-          test "$EXPECTED_SHA" = "$ACTUAL_SHA"
-          rm -rf public
-          mkdir -p public
-          unzip -q site.zip -d public
-
       - name: Deploy
-        if: steps.site.outputs.ready == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
