@@ -72,6 +72,9 @@ jobs:
       - name: Link homepage to ranking hubs
         run: python scripts/add_ranking_hub_links.py
 
+      - name: Apply colorful readable theme
+        run: python scripts/inject_colorful_readability.py
+
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:
