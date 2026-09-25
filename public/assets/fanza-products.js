@@ -13,8 +13,8 @@
       .fanza-product-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
       .fanza-product-card{position:relative;display:flex;flex-direction:column;min-width:0;border:1px solid #eee;border-radius:16px;overflow:hidden;background:#fff;text-decoration:none!important;color:inherit!important;transition:.18s ease}
       .fanza-product-card:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(0,0,0,.08)}
-      .fanza-product-image{aspect-ratio:3/4;background:#f6f6f6;overflow:hidden;position:relative}
-      .fanza-product-image img{width:100%;height:100%;object-fit:cover;display:block}
+      .fanza-product-image{aspect-ratio:2/3;background:#fff;overflow:hidden;position:relative}
+      .fanza-product-image img{width:100%;height:100%;object-fit:contain;object-position:center;display:block}
       .fanza-rank-badge{position:absolute;top:10px;left:10px;z-index:2;min-width:34px;height:34px;padding:0 8px;display:flex;align-items:center;justify-content:center;border-radius:999px;background:#111;color:#fff;font-size:.82rem;font-weight:800;box-shadow:0 4px 12px rgba(0,0,0,.18)}
       .fanza-rank-badge.top1{background:linear-gradient(135deg,#c79b18,#f3cf64);color:#201700}.fanza-rank-badge.top2{background:linear-gradient(135deg,#929292,#dedede);color:#171717}.fanza-rank-badge.top3{background:linear-gradient(135deg,#a9632e,#d99a66);color:#fff}
       .fanza-discount-badge{position:absolute;top:10px;right:10px;z-index:2;padding:6px 9px;border-radius:999px;background:#d81b46;color:#fff;font-size:.74rem;font-weight:800}
@@ -33,7 +33,7 @@
       .ranking-controls input{min-width:220px}
       .ranking-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0 22px}.ranking-stat{padding:14px;border:1px solid #eee;border-radius:14px;background:#fafafa}.ranking-stat b{display:block;font-size:1.25rem}.ranking-stat span{font-size:.76rem;color:#666}
       .ranking-featured{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:18px 0 28px}.ranking-featured .fanza-product-card:nth-child(1){transform:translateY(-5px)}
-      .ranking-featured .fanza-product-image{aspect-ratio:4/5}
+      .ranking-featured .fanza-product-image{aspect-ratio:2/3}
       .ranking-empty{padding:28px;border:1px dashed #ddd;border-radius:14px;text-align:center;color:#777}
       .ranking-updated{font-size:.8rem;color:#777}
       .ranking-loadmore{display:flex;justify-content:center;margin-top:20px}.ranking-loadmore button{border:1px solid #111;background:#fff;border-radius:999px;padding:11px 18px;font-weight:800;cursor:pointer}.ranking-loadmore button:hover{background:#111;color:#fff}
@@ -133,7 +133,7 @@
     const note = document.createElement("p"); note.className = "fanza-api-note"; note.textContent = noteText;
     head.append(title, note);
     const grid = document.createElement("div"); grid.className = "fanza-product-grid";
-    items.slice(0, 8).forEach((item, i) => grid.appendChild(productCard(item, targetPrefix, i)));
+    items.slice(0, 12).forEach((item, i) => grid.appendChild(productCard(item, targetPrefix, i)));
     const credit = document.createElement("div"); credit.className = "fanza-api-credit"; credit.innerHTML = CREDIT_HTML;
     section.append(head, grid, credit); return section;
   }
@@ -165,7 +165,7 @@
       deals: unique(data.deals || [])
     };
     let active = "ranking";
-    let visible = 16;
+    let visible = 24;
     let query = "";
     let sortMode = "default";
 
@@ -242,14 +242,14 @@
     }
 
     mount.querySelectorAll(".ranking-tab").forEach(btn => btn.addEventListener("click", () => {
-      active = btn.dataset.tab; visible = 16; query = ""; sortMode = "default";
+      active = btn.dataset.tab; visible = 24; query = ""; sortMode = "default";
       mount.querySelectorAll(".ranking-tab").forEach(x => x.classList.toggle("active", x === btn));
       mount.querySelector("#rankingSearch").value = ""; mount.querySelector("#rankingSort").value = "default"; draw();
       if (typeof window.gtag === "function") window.gtag("event","ranking_tab_change",{ranking_tab:active,page_path:location.pathname});
     }));
-    mount.querySelector("#rankingSearch").addEventListener("input", e => { query = e.target.value.trim(); visible = 16; draw(); });
-    mount.querySelector("#rankingSort").addEventListener("change", e => { sortMode = e.target.value; visible = 16; draw(); });
-    more.addEventListener("click", () => { visible += 16; draw(); });
+    mount.querySelector("#rankingSearch").addEventListener("input", e => { query = e.target.value.trim(); visible = 24; draw(); });
+    mount.querySelector("#rankingSort").addEventListener("change", e => { sortMode = e.target.value; visible = 24; draw(); });
+    more.addEventListener("click", () => { visible += 24; draw(); });
     draw();
   }
 
