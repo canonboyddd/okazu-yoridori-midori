@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 
 ROOT = Path("public/ranking/actress")
-ASSET_VERSION = "20260925-2359"
+ASSET_VERSION = "20260926-0200"
 
 
 def clean_directory_page(path: Path) -> int:
@@ -14,8 +14,7 @@ def clean_directory_page(path: Path) -> int:
     before = text
 
     # Directory cards without FANZA profile images are omitted rather than showing
-    # a made-up or unrelated photo. The full 10,000-person dataset remains in JSON
-    # so name/kana filtering still works from the official API data.
+    # a made-up or unrelated photo. Search results are rebuilt from official API data.
     patterns = [
         r'<div class="actress-card"><div class="actress-photo"><span class="actress-fallback">.*?</span></div><div class="actress-card-body">.*?</div></div>',
         r'<a class="actress-card"[^>]*><div class="actress-photo"><span class="actress-fallback">.*?</span></div><div class="actress-card-body">.*?</div></a>',
