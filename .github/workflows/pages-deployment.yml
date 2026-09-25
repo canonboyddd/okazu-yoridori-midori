@@ -36,6 +36,12 @@ jobs:
           DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
         run: python scripts/build_mass_catalog.py
 
+      - name: Bust ranking asset caches
+        run: |
+          find public -type f -name '*.html' -exec sed -i \
+            -e 's#entity-rankings.css?v=20260925-2200#entity-rankings.css?v=20260925-2315#g' \
+            -e 's#entity-rankings.css?v=20260925-2252#entity-rankings.css?v=20260925-2315#g' {} +
+
       - name: Move ranking PR disclosure below products
         run: python scripts/move_ranking_pr_notice.py
 
