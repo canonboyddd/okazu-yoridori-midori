@@ -28,6 +28,9 @@ jobs:
       - name: Enhance generated ranking SEO
         run: python scripts/enhance_fanza_seo.py
 
+      - name: Link homepage to ranking hubs
+        run: python scripts/add_ranking_hub_links.py
+
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:
