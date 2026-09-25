@@ -79,14 +79,35 @@ jobs:
             Cache-Control: public, max-age=86400
           '''
           (root / '_headers').write_text(headers, encoding='utf-8')
+          PY
 
+      - name: Normalize approved affiliate status and routes
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import shutil
+
+          root = Path('public')
           approved = '当サイトはDMMアフィリエイトに参加しています。成果報酬リンクを掲載する場合は、広告・PRであることが分かるよう表示します。'
-          old1 = '当サイトはアフィリエイトプログラムへの参加を予定しています。審査通過後、広告・成果報酬リンクを掲載する場合は分かるように表示します。'
-          old2 = 'DMMアフィリエイト審査中です。承認後に成果報酬リンクを掲載する場合は、広告であることが分かるよう表示します。'
+          replacements = {
+              '当サイトはアフィリエイトプログラムへの参加を予定しています。審査通過後、広告・成果報酬リンクを掲載する場合は分かるように表示します。': approved,
+              'DMMアフィリエイト審査中です。承認後に成果報酬リンクを掲載する場合は、広告であることが分かるよう表示します。': approved,
+              '当サイトはDMMアフィリエイトへ申請中です。承認後に成果報酬型広告を掲載する場合は、広告・PRであることが読者に分かるよう表示します。': '当サイトはDMMアフィリエイトに参加しています。成果報酬型広告を掲載する場合は、広告・PRであることが読者に分かるよう表示します。',
+              '当サイトはDMMアフィリエイトへ申請中です。承認後に成果報酬リンクを掲載する場合は、広告であることが分かるよう表示します。': approved,
+              '承認後の商品導線': '広告・商品導線'
+          }
+
           for p in root.rglob('*.html'):
               s = p.read_text(encoding='utf-8', errors='replace')
-              s = s.replace(old1, approved).replace(old2, approved)
+              for old, new in replacements.items():
+                  s = s.replace(old, new)
               p.write_text(s, encoding='utf-8')
+
+          if (root / 'about').exists():
+              shutil.copyfile(root / 'about', root / 'about.html')
+          if (root / 'privacy').exists():
+              shutil.copyfile(root / 'privacy', root / 'privacy.html')
 
           (root / 'assets' / 'affiliate-config.js').write_text(
               'window.AFFILIATE_CONFIG = {\n'
@@ -99,15 +120,14 @@ jobs:
           )
           PY
 
-      - name: Save bootstrapped site to GitHub
-        if: ${{ hashFiles('public/index.html') != '' }}
+      - name: Save site source to GitHub
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add public
           if ! git diff --cached --quiet; then
-            git commit -m "Bootstrap Pages site source [skip ci]"
+            git commit -m "Sync Pages site source [skip ci]"
             git push
           fi
 
