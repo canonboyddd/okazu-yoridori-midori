@@ -38,7 +38,7 @@ def _price_value(value: object) -> int | None:
     return int(digits) if digits else None
 
 
-def fetch_items(api_id: str, affiliate_id: str, sort: str, hits: int = 30) -> list[dict]:
+def fetch_items(api_id: str, affiliate_id: str, sort: str, hits: int = 50) -> list[dict]:
     params = {
         "api_id": api_id,
         "affiliate_id": affiliate_id,
@@ -52,7 +52,7 @@ def fetch_items(api_id: str, affiliate_id: str, sort: str, hits: int = 30) -> li
     }
     req = Request(
         API_URL + "?" + urlencode(params),
-        headers={"User-Agent": "okazu-yoridori-midori/2.0"},
+        headers={"User-Agent": "okazu-yoridori-midori/3.0"},
     )
     with urlopen(req, timeout=30) as res:
         payload = json.loads(res.read().decode("utf-8"))
@@ -103,6 +103,19 @@ def fetch_items(api_id: str, affiliate_id: str, sort: str, hits: int = 30) -> li
     return normalized
 
 
+def _dedupe(*groups: list[dict]) -> list[dict]:
+    seen: set[str] = set()
+    merged: list[dict] = []
+    for group in groups:
+        for item in group:
+            key = str(item.get("contentId") or item.get("affiliateURL") or "")
+            if not key or key in seen:
+                continue
+            seen.add(key)
+            merged.append(item)
+    return merged
+
+
 def main() -> None:
     api_id = os.environ.get("DMM_API_ID", "").strip()
     affiliate_id = os.environ.get("DMM_API_AFFILIATE_ID", "").strip() or "okazumidori-990"
@@ -111,24 +124,41 @@ def main() -> None:
         print("DMM_API_ID is not configured; FANZA API cache generation skipped.")
         return
 
-    ranking = fetch_items(api_id, affiliate_id, "rank", 30)
-    latest = fetch_items(api_id, affiliate_id, "date", 30)
+    ranking = fetch_items(api_id, affiliate_id, "rank", 50)
+    latest = fetch_items(api_id, affiliate_id, "date", 50)
+    catalog = _dedupe(ranking, latest)
+
+    high_rated = sorted(
+        [x for x in catalog if float(x.get("reviewAverage") or 0) > 0],
+        key=lambda x: (float(x.get("reviewAverage") or 0), int(x.get("reviewCount") or 0)),
+        reverse=True,
+    )
+    deals = sorted(
+        [x for x in catalog if int(x.get("discountRate") or 0) > 0],
+        key=lambda x: (int(x.get("discountRate") or 0), int(x.get("reviewCount") or 0)),
+        reverse=True,
+    )
 
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT.write_text(
-        json.dumps(
-            {
-                "generatedAt": datetime.now(timezone.utc).isoformat(),
-                "affiliateId": affiliate_id,
-                "ranking": ranking,
-                "latest": latest,
-            },
-            ensure_ascii=False,
-            separators=(",", ":"),
-        ),
-        encoding="utf-8",
+    payload = {
+        "generatedAt": datetime.now(timezone.utc).isoformat(),
+        "affiliateId": affiliate_id,
+        "ranking": ranking,
+        "latest": latest,
+        "highRated": high_rated[:50],
+        "deals": deals[:50],
+        "stats": {
+            "rankingCount": len(ranking),
+            "latestCount": len(latest),
+            "highRatedCount": len(high_rated),
+            "dealCount": len(deals),
+        },
+    }
+    OUTPUT.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+    print(
+        f"Wrote {OUTPUT} ({len(ranking)} ranking, {len(latest)} latest, "
+        f"{len(high_rated)} highRated, {len(deals)} deals)"
     )
-    print(f"Wrote {OUTPUT} ({len(ranking)} ranking, {len(latest)} latest)")
 
 
 if __name__ == "__main__":
