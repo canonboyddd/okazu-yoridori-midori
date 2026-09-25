@@ -19,6 +19,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Expand FANZA catalog settings
+        run: |
+          sed -i 's/^ENTITY_LIMIT = 10$/ENTITY_LIMIT = 20/' scripts/build_fanza_api.py
+          sed -i 's/^ENTITY_HITS = 20$/ENTITY_HITS = 30/' scripts/build_fanza_api.py
+
       - name: Build FANZA API cache
         env:
           DMM_API_ID: ${{ secrets.DMM_API_ID }}
