@@ -33,8 +33,7 @@
   }
 
   function firstKana(row) {
-    const source = toHiragana(row.ruby || row.name).trim();
-    return source.charAt(0);
+    return toHiragana(row.ruby || row.name).trim().charAt(0);
   }
 
   function buildKanaNav() {
@@ -42,30 +41,43 @@
     const nav = document.createElement('div');
     nav.id = 'actressKanaNav';
     nav.className = 'actress-kana-nav';
-
-    const kana = [
-      'あ','い','う','え','お',
-      'か','き','く','け','こ',
-      'さ','し','す','せ','そ',
-      'た','ち','つ','て','と',
-      'な','に','ぬ','ね','の',
-      'は','ひ','ふ','へ','ほ',
-      'ま','み','む','め','も',
-      'や','ゆ','よ',
-      'ら','り','る','れ','ろ',
-      'わ','を','ん'
-    ];
-
-    nav.innerHTML = `<button type="button" data-kana="all" class="active kana-all">すべて</button>${kana.map(ch => `<button type="button" data-kana="${ch}">${ch}</button>`).join('')}`;
+    const groups = ['all','あ','い','う','え','お','か','き','く','け','こ','さ','し','す','せ','そ','た','ち','つ','て','と','な','に','ぬ','ね','の','は','ひ','ふ','へ','ほ','ま','み','む','め','も','や','ゆ','よ','ら','り','る','れ','ろ','わ','を','ん'];
+    const labels = {all:'すべて'};
+    nav.innerHTML = groups.map(group => `<button type="button" data-kana="${group}" class="${group === 'all' ? 'active' : ''}">${labels[group] || group}</button>`).join('');
     input.closest('.actress-search').insertAdjacentElement('afterend', nav);
-
     nav.addEventListener('click', event => {
       const button = event.target.closest('button[data-kana]');
       if (!button) return;
       activeKana = button.dataset.kana || 'all';
       nav.querySelectorAll('button').forEach(btn => btn.classList.toggle('active', btn === button));
       render();
+      const target = document.getElementById('actressSearchResults');
+      if (activeKana !== 'all' && target) {
+        target.scrollIntoView({behavior:'smooth', block:'start'});
+      }
     });
+  }
+
+  function showDefault() {
+    results.hidden = true;
+    results.style.display = 'none';
+    defaultGrid.hidden = false;
+    defaultGrid.style.display = 'grid';
+    if (pagination) {
+      pagination.hidden = false;
+      pagination.style.display = 'flex';
+    }
+  }
+
+  function showResults() {
+    defaultGrid.hidden = true;
+    defaultGrid.style.display = 'none';
+    results.hidden = false;
+    results.style.display = 'grid';
+    if (pagination) {
+      pagination.hidden = true;
+      pagination.style.display = 'none';
+    }
   }
 
   function render() {
@@ -73,9 +85,7 @@
     const filtering = Boolean(q) || activeKana !== 'all';
 
     if (!filtering) {
-      results.hidden = true;
-      defaultGrid.hidden = false;
-      if (pagination) pagination.hidden = false;
+      showDefault();
       count.textContent = `写真あり ${photoActresses.length.toLocaleString('ja-JP')}人 / 全${actresses.length.toLocaleString('ja-JP')}人`;
       return;
     }
@@ -88,9 +98,7 @@
       return textMatch && kanaMatch;
     });
 
-    defaultGrid.hidden = true;
-    results.hidden = false;
-    if (pagination) pagination.hidden = true;
+    showResults();
     results.innerHTML = matched.slice(0, 200).map(card).join('') || '<div class="entity-empty">該当する女優が見つかりませんでした。</div>';
     count.textContent = `${matched.length.toLocaleString('ja-JP')}人該当${matched.length > 200 ? '（先頭200人を表示）' : ''}`;
   }
