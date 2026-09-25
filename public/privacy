@@ -1,0 +1,55 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>プライバシーポリシー | オカズはよりどりみどり</title><meta name="description" content="オカズはよりどりみどりのプライバシーポリシー。アクセスログ、Cookie、広告・アフィリエイト、個人情報、免責事項、著作権の取り扱いを掲載しています。"><link rel="stylesheet" href="/assets/style-white-v2.css?v=20260922-1322"><link rel="canonical" href="https://okazu-yoridori-midori.pages.dev/privacy">
+<meta property="og:site_name" content="オカズはよりどりみどり">
+<meta property="og:url" content="https://okazu-yoridori-midori.pages.dev/privacy">
+<link rel="icon" type="image/png" href="/assets/favicon.png"><meta property="og:image" content="https://okazu-yoridori-midori.pages.dev/assets/og-default.png"><script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebPage", "name": "プライバシーポリシー", "url": "https://okazu-yoridori-midori.pages.dev/privacy", "isPartOf": {"@type": "WebSite", "name": "オカズはよりどりみどり", "url": "https://okazu-yoridori-midori.pages.dev/"}}</script></head>
+<body><header><div class="wrap header-inner">
+<a class="logo" href="/"><span>オカズはよりどりみどり</span></a>
+<nav class="topnav">
+<a href="/sale/">セール</a>
+<a href="/ranking/">ランキング</a>
+<a href="/subscription/">見放題比較</a>
+<a href="/reviews/">レビュー</a>
+<a href="/discover/">探す</a>
+<a href="/guide/">初心者ガイド</a>
+</nav></div></header><main class="article">
+<h1>プライバシーポリシー</h1>
+<p class="lead">オカズはよりどりみどりにおけるアクセス解析、Cookie、広告、個人情報、免責事項、著作権等の取り扱いを説明します。</p>
+
+<h2>Google Analytics 4 の利用</h2>
+<p>当サイトでは、アクセス状況の把握とサイト改善のため Google Analytics 4（GA4）を利用しています。閲覧ページ、利用端末・ブラウザ、参照元、サイト内のクリックやスクロール等の利用状況が計測される場合があります。</p>
+<p>当サイトでは、ページ閲覧に加え、セール・ランキング・レビュー等への内部リンク、DMM/FANZAへの外部リンククリック、記事の90％スクロール等をサイト改善のために計測しています。</p>
+
+<h2>Cookie等について</h2>
+<p>Google Analytics等のサービスはCookieその他の識別技術を利用する場合があります。Cookieはブラウザ設定で制限・削除できますが、一部の機能や計測に影響する場合があります。</p>
+
+<h2>広告・アフィリエイトについて</h2>
+<p>当サイトはDMMアフィリエイトへ申請中です。承認後に成果報酬型広告を掲載する場合は、広告・PRであることが読者に分かるよう表示します。外部広告リンクには必要に応じて <code>sponsored</code>・<code>nofollow</code> 等の属性を付与します。</p>
+
+<h2>個人情報について</h2>
+<p>現時点で、当サイトは独自の会員登録機能や決済機能を提供していません。将来、問い合わせ等で個人情報を取得する場合は、取得目的を明示し、その目的の範囲内で取り扱います。</p>
+
+<h2>免責事項</h2>
+<p>掲載内容の正確性には配慮していますが、料金、キャンペーン、販売条件、サービス仕様等は変更される場合があります。購入・契約前には必ず公式サイトの最新情報をご確認ください。</p>
+
+<h2>著作権・権利素材</h2>
+<p>当サイト独自の文章・デザインの無断転載を禁止します。商品画像や動画等を掲載する場合は、権利者またはアフィリエイトプログラムが利用を認めた素材のみを、定められた条件の範囲で使用します。</p>
+
+<h2>プライバシーポリシーの変更</h2>
+<p>利用サービス、広告プログラム、法令等の変更に応じて、本ポリシーを更新する場合があります。</p>
+
+<p class="meta">最終更新：2026年9月18日</p>
+</main><footer><div class="wrap">
+<div class="footer-links"><a href="/about.html">サイトについて</a><a href="/privacy.html">プライバシーポリシー</a></div>
+<div>© 2026 オカズはよりどりみどり. All rights reserved.</div>
+</div></footer><div id="ageModal" class="age-modal" aria-modal="true" role="dialog">
+  <div class="age-box">
+    <h2>18歳以上ですか？</h2>
+    <p>このサイトは成人向けサービスに関する情報を扱います。18歳未満の方は閲覧できません。</p>
+    <div class="age-actions">
+      <button id="ageYes">18歳以上です</button>
+      <a class="btn-secondary" href="https://www.google.com/">退出する</a>
+    </div>
+    <p class="small">年齢確認はこのブラウザ内に保存されます。</p>
+  </div>
+</div><script src="/assets/app.js"></script><script src="/assets/affiliate-config.js"></script><script src="/assets/v6.js"></script><script src="/assets/app.js"></script><script src="/assets/ga4-config.js"></script><script src="/assets/ga4.js"></script><script src="/assets/affiliate-compliance.js"></script></body></html>
