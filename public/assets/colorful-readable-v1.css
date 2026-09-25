@@ -1,0 +1,160 @@
+/* Colorful + readable site-wide theme
+   Brand idea: 「よりどりみどり」 = colorful choice, while keeping product text easy to scan. */
+:root{
+  --cr-ink:#111827;
+  --cr-body:#243041;
+  --cr-muted:#4b5b70;
+  --cr-soft:#64748b;
+  --cr-line:#d8e0ea;
+  --cr-pink:#e83e73;
+  --cr-purple:#7c3aed;
+  --cr-blue:#2563eb;
+  --cr-cyan:#0891b2;
+  --cr-green:#16845b;
+  --cr-orange:#d97706;
+  --cr-yellow:#b7791f;
+}
+
+html,body{
+  color:var(--cr-ink)!important;
+  font-weight:500!important;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+body{
+  background:
+    radial-gradient(circle at 8% 0%,rgba(232,62,115,.055),transparent 24rem),
+    radial-gradient(circle at 92% 8%,rgba(37,99,235,.05),transparent 24rem),
+    linear-gradient(180deg,#ffffff 0%,#fbfdff 72%,#f7fafc 100%)!important;
+}
+
+/* Main reading contrast */
+p,li,dd,td,.article p,.hero p,.hub-hero p,.card p,.money-card p,
+.intent-card span,.mini-card span,.flow-card small,.faq-item-v9 p,
+.directory-note,.entity-credit,.entity-sub,.entity-meta,.product-spec,
+.product-spec dd,.product-spec dt,.count,.meta,.small{
+  color:var(--cr-body)!important;
+  font-weight:500!important;
+}
+.small,.meta,.count,.entity-credit,.directory-note,.update-badge,.status-badge,
+.money-card .kicker,.entity-sub{
+  color:var(--cr-muted)!important;
+  font-weight:600!important;
+}
+small{color:var(--cr-muted)!important;font-weight:600!important}
+
+h1,h2,h3,h4,h5,h6,strong,b,.entity-title,.product-title,.actress-card strong,
+.taxonomy-card strong,.entity-hub-card strong{
+  color:#0f172a!important;
+  font-weight:750!important;
+}
+h1{font-weight:850!important;letter-spacing:-.035em!important}
+h2{font-weight:800!important}
+h3{font-weight:750!important}
+
+/* Minimum readable sizes */
+body{font-size:16px!important;line-height:1.75!important}
+nav a,.topnav a{font-size:.95rem!important;font-weight:700!important}
+.card p,.money-card p,.intent-card span,.mini-card span,.flow-card small,
+.entity-sub,.entity-meta,.directory-note,.entity-credit,.small,.meta,.count{
+  font-size:max(.86rem,13.5px)!important;
+  line-height:1.65!important;
+}
+
+/* Rainbow brand logo */
+.logo,.logo span{
+  font-weight:900!important;
+  letter-spacing:.02em!important;
+  background:linear-gradient(90deg,#e83e73 0%,#ef6c35 18%,#d59b16 34%,#16845b 51%,#0891b2 67%,#2563eb 82%,#7c3aed 100%)!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  color:transparent!important;
+}
+
+/* Header navigation: distinct colors but strong text */
+.topnav a{border:1px solid transparent!important;box-shadow:0 1px 2px rgba(15,23,42,.04)!important}
+.topnav a:nth-child(1){background:#fff0f5!important;color:#b91c5c!important;border-color:#ffd2df!important}
+.topnav a:nth-child(2){background:#fff1f4!important;color:#c0265e!important;border-color:#ffcbd8!important}
+.topnav a:nth-child(3){background:#eef8ff!important;color:#155e8a!important;border-color:#ccecff!important}
+.topnav a:nth-child(4){background:#eefbf5!important;color:#166a4a!important;border-color:#cdebdc!important}
+.topnav a:nth-child(5){background:#fff5e9!important;color:#a85608!important;border-color:#f7dcc0!important}
+.topnav a:nth-child(6){background:#f3f0ff!important;color:#6340b5!important;border-color:#ddd4ff!important}
+.topnav a:hover{filter:saturate(1.1);transform:translateY(-1px)}
+
+/* Colorful section accents */
+.eyebrow,.update-badge,.status-badge{
+  background:linear-gradient(90deg,#fff1f6,#f3f0ff,#eef8ff)!important;
+  border-color:#d6dce7!important;
+  color:#334155!important;
+}
+.hub-hero{
+  background:linear-gradient(100deg,rgba(255,240,245,.72),rgba(243,240,255,.58) 38%,rgba(238,248,255,.66) 70%,rgba(238,251,245,.65))!important;
+  border-bottom:1px solid #dce4ee!important;
+}
+.hub-hero h1{color:#111827!important}
+
+/* Cards: keep white, add colorful visual anchors */
+.card,.money-card,.intent-card,.mini-card,.flow-card,.faq-item-v9,
+.quick-box,.policy-note,.revenue-step,.taxonomy-card,.entity-hub-card,
+.actress-card,.entity-product-card,.product-card{
+  background:#fff!important;
+  border-color:var(--cr-line)!important;
+  box-shadow:0 5px 16px rgba(15,23,42,.07)!important;
+}
+.card:hover,.money-card:hover,.intent-card:hover,.mini-card:hover,.flow-card:hover,
+.taxonomy-card:hover,.entity-hub-card:hover,.actress-card:hover,.entity-product-card:hover{
+  border-color:#b7c4d5!important;
+  box-shadow:0 9px 24px rgba(15,23,42,.10)!important;
+}
+
+/* Repeating rainbow card accents */
+.money-card:nth-child(6n+1),.intent-card:nth-child(6n+1),.taxonomy-card:nth-child(6n+1),.entity-hub-card:nth-child(6n+1){border-top:4px solid var(--cr-pink)!important}
+.money-card:nth-child(6n+2),.intent-card:nth-child(6n+2),.taxonomy-card:nth-child(6n+2),.entity-hub-card:nth-child(6n+2){border-top:4px solid var(--cr-purple)!important}
+.money-card:nth-child(6n+3),.intent-card:nth-child(6n+3),.taxonomy-card:nth-child(6n+3),.entity-hub-card:nth-child(6n+3){border-top:4px solid var(--cr-blue)!important}
+.money-card:nth-child(6n+4),.intent-card:nth-child(6n+4),.taxonomy-card:nth-child(6n+4),.entity-hub-card:nth-child(6n+4){border-top:4px solid var(--cr-green)!important}
+.money-card:nth-child(6n+5),.intent-card:nth-child(6n+5),.taxonomy-card:nth-child(6n+5),.entity-hub-card:nth-child(6n+5){border-top:4px solid var(--cr-orange)!important}
+.money-card:nth-child(6n+6),.intent-card:nth-child(6n+6),.taxonomy-card:nth-child(6n+6),.entity-hub-card:nth-child(6n+6){border-top:4px solid var(--cr-cyan)!important}
+
+/* Ranking/product readability */
+.entity-product-card{color:var(--cr-ink)!important}
+.entity-title{font-size:1rem!important;line-height:1.55!important}
+.entity-price,.product-price{color:#b42318!important;font-weight:850!important}
+.entity-old-price,.product-old-price{color:#64748b!important;font-weight:600!important}
+.entity-discount,.product-discount{font-weight:800!important}
+.entity-pr{color:#8a3b13!important;font-weight:700!important}
+.entity-rank{font-weight:900!important}
+
+/* Tables, breadcrumbs and links */
+.compare-table th{color:#111827!important;font-weight:800!important}
+.compare-table td{color:#263548!important;font-weight:500!important}
+.breadcrumbs,.entity-breadcrumb{color:#40526a!important;font-weight:600!important}
+.breadcrumbs a,.entity-breadcrumb a{color:#2459a9!important;font-weight:700!important}
+.article a,.section a:not(.entity-product-card):not(.actress-card):not(.taxonomy-card):not(.entity-hub-card){text-decoration-thickness:1.5px;text-underline-offset:2px}
+
+/* Inputs / filters */
+input,select,textarea,.searchbox input,.actress-search input{
+  color:#111827!important;
+  font-weight:600!important;
+  border-color:#bfcada!important;
+  background:#fff!important;
+}
+input::placeholder,textarea::placeholder{color:#64748b!important;opacity:1!important}
+button,.btn-secondary{font-weight:800!important}
+.actress-kana-nav button{color:#243041!important;background:#fff!important;border-color:#cdd7e3!important;font-weight:750!important}
+.actress-kana-nav button.active,.actress-kana-nav button[aria-pressed="true"]{
+  color:#fff!important;
+  background:linear-gradient(135deg,#e83e73,#7c3aed)!important;
+  border-color:transparent!important;
+}
+
+/* Notices */
+.notice{background:#fff8e8!important;border-color:#e7bd53!important;color:#6f4510!important;font-weight:600!important}
+.editorial-box{border-left:4px solid var(--cr-purple)!important}
+.disclosure{color:#374151!important;font-weight:600!important}
+
+footer,.footer-links a{color:#48576a!important;font-weight:600!important}
+
+@media(max-width:700px){
+  body{font-size:15.5px!important}
+  .topnav a{font-size:.9rem!important}
+}
