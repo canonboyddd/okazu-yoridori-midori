@@ -81,6 +81,9 @@ jobs:
       - name: Link homepage to ranking hubs
         run: python scripts/add_ranking_hub_links.py
 
+      - name: Add FC2 Adult section and site-wide navigation
+        run: python scripts/add_fc2_adult_section.py
+
       - name: Apply colorful readable theme
         run: python scripts/inject_colorful_readability.py
 
