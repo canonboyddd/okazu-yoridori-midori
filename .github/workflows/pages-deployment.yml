@@ -25,6 +25,9 @@ jobs:
           DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
         run: python scripts/build_fanza_api.py
 
+      - name: Enhance generated ranking SEO
+        run: python scripts/enhance_fanza_seo.py
+
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:
