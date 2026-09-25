@@ -6,3 +6,6 @@
 
 /assets/*
   Cache-Control: public, max-age=86400
+
+/assets/app.js
+  Cache-Control: no-cache, must-revalidate
