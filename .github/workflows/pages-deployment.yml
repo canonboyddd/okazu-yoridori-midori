@@ -98,7 +98,16 @@ jobs:
               '承認後の商品導線': '広告・商品導線'
           }
 
-          for p in root.rglob('*.html'):
+          targets = list(root.rglob('*.html'))
+          for extra in (root / 'about', root / 'privacy'):
+              if extra.exists():
+                  targets.append(extra)
+
+          seen = set()
+          for p in targets:
+              if p in seen:
+                  continue
+              seen.add(p)
               s = p.read_text(encoding='utf-8', errors='replace')
               for old, new in replacements.items():
                   s = s.replace(old, new)
