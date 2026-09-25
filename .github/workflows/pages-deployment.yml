@@ -30,6 +30,12 @@ jobs:
           DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
         run: python scripts/build_fanza_api.py
 
+      - name: Build 1000-page product catalog
+        env:
+          DMM_API_ID: ${{ secrets.DMM_API_ID }}
+          DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
+        run: python scripts/build_mass_catalog.py
+
       - name: Move ranking PR disclosure below products
         run: python scripts/move_ranking_pr_notice.py
 
