@@ -1,70 +1,58 @@
 <!doctype html><html lang="ja"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FANZA人気ランキング・新着・高評価・セール比較 | オカズはよりどりみどり</title>
-<meta name="description" content="FANZA Webサービスの商品データを使い、人気ランキング、新着、高評価、セール候補を画像付きで比較。価格・レビュー・メーカー・出演者から絞り込めます。">
+<title>FANZA人気ランキング・女優別・ジャンル別・メーカー別比較 | オカズはよりどりみどり</title>
+<meta name="description" content="FANZA Webサービスの商品データを使い、総合人気、新着、高評価、セールに加えて、女優別・ジャンル別・メーカー別の人気作品ランキングを自動生成しています。">
 <meta name="robots" content="index,follow">
 <link rel="canonical" href="https://okazu-yoridori-midori.pages.dev/ranking/">
 <link rel="icon" type="image/png" href="/assets/favicon.png">
 <meta property="og:site_name" content="オカズはよりどりみどり">
 <meta property="og:type" content="website">
-<meta property="og:title" content="FANZA人気ランキング・新着・高評価・セール比較">
-<meta property="og:description" content="FANZAの商品データを画像付きで比較。人気・新着・高評価・セール候補を切り替えて探せます。">
+<meta property="og:title" content="FANZA人気ランキング・女優別・ジャンル別・メーカー別比較">
+<meta property="og:description" content="FANZAの商品データを画像付きで比較。総合・女優別・ジャンル別・メーカー別ランキングを自動更新します。">
 <meta property="og:url" content="https://okazu-yoridori-midori.pages.dev/ranking/">
 <meta property="og:image" content="https://okazu-yoridori-midori.pages.dev/assets/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="/assets/style-white-v2.css?v=20260922-1322">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"CollectionPage","name":"FANZA人気ランキング・新着・高評価・セール比較","description":"FANZA Webサービスの商品データを使い、人気、新着、高評価、セール候補を比較できるランキングページです。","url":"https://okazu-yoridori-midori.pages.dev/ranking/","isPartOf":{"@type":"WebSite","name":"オカズはよりどりみどり","url":"https://okazu-yoridori-midori.pages.dev/"}}</script>
+<link rel="stylesheet" href="/assets/entity-rankings.css?v=20260925-2200">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"CollectionPage","name":"FANZA人気ランキング・女優別・ジャンル別・メーカー別比較","description":"FANZA Webサービスの商品データを使い、総合人気、新着、高評価、セール、女優別、ジャンル別、メーカー別のランキングを比較できるページです。","url":"https://okazu-yoridori-midori.pages.dev/ranking/","isPartOf":{"@type":"WebSite","name":"オカズはよりどりみどり","url":"https://okazu-yoridori-midori.pages.dev/"}}</script>
 </head>
 <body><header><div class="wrap header-inner">
 <a class="logo" href="/"><span>オカズはよりどりみどり</span></a>
-<nav class="topnav">
-<a href="/sale/">セール</a>
-<a href="/ranking/">ランキング</a>
-<a href="/subscription/">見放題比較</a>
-<a href="/reviews/">レビュー</a>
-<a href="/discover/">探す</a>
-<a href="/guide/">初心者ガイド</a>
-</nav></div></header><main>
-<section class="hub-hero"><div class="wrap">
-<span class="update-badge">FANZA API LIVE DATA</span>
-<h1>FANZA人気ランキング</h1>
-<p>人気・新着・高評価・セール候補を、実際の商品画像・価格・レビュー情報付きで比較できます。商品情報はFANZA Webサービスから自動取得しています。</p>
-<div class="notice"><strong>PRについて：</strong>このページにはアフィリエイト広告を含みます。価格・販売状況・配信条件は変動するため、購入前にFANZA公式ページで最新情報をご確認ください。</div>
-</div></section>
+<nav class="topnav"><a href="/sale/">セール</a><a href="/ranking/">ランキング</a><a href="/subscription/">見放題比較</a><a href="/reviews/">レビュー</a><a href="/discover/">探す</a><a href="/guide/">初心者ガイド</a></nav></div></header><main>
+<section class="hub-hero"><div class="wrap"><span class="update-badge">FANZA API LIVE DATA</span><h1>FANZA人気ランキング</h1><p>総合人気・新着・高評価・セール候補に加え、女優別・ジャンル別・メーカー別のランキングをFANZA Webサービスから自動生成しています。</p><div class="notice"><strong>PRについて：</strong>このページにはアフィリエイト広告を含みます。価格・販売状況・配信条件は変動するため、購入前にFANZA公式ページで最新情報をご確認ください。</div></div></section>
 
 <section class="section"><div class="wrap">
-<div class="quick-box"><strong>選び方のポイント</strong>ランキング上位だけで決めず、「価格」「レビュー件数」「出演者・メーカー」「セール状況」を合わせて比較すると選びやすくなります。</div>
+<div class="quick-box"><strong>選び方のポイント</strong>総合順位だけでなく、好きな女優・ジャンル・メーカーから絞ると候補を探しやすくなります。</div>
 
-<div id="rankingApp" aria-live="polite">
-  <div class="quick-box">ランキング商品データを読み込んでいます。</div>
+<h2>条件別ランキング</h2>
+<div class="entity-nav">
+<a href="/ranking/actress/"><b>女優別ランキング</b><span>人気作品から女優を自動抽出し、女優ごとの人気作品をランキング表示。</span></a>
+<a href="/ranking/genre/"><b>ジャンル別ランキング</b><span>ジャンルごとに人気作品をAPIから自動取得して比較。</span></a>
+<a href="/ranking/maker/"><b>メーカー別ランキング</b><span>メーカーごとの人気作品を画像・価格・レビュー付きで比較。</span></a>
 </div>
+
+<h2>総合ランキング</h2>
+<div id="rankingApp" aria-live="polite"><div class="quick-box">ランキング商品データを読み込んでいます。</div></div>
 
 <div class="affiliate-slot"><strong>PR / 広告</strong><p>FANZA公式ランキング・商品ページへの成果報酬リンクを掲載しています。</p></div>
 
 <h2>ランキングの見方</h2>
 <table class="compare-table"><tr><th>見る項目</th><th>確認ポイント</th></tr>
-<tr><td>人気</td><td>FANZA Webサービスの人気順データを候補選びの入口として使います。</td></tr>
-<tr><td>価格</td><td>表示価格と値引き情報を確認し、最終価格は公式ページで確認します。</td></tr>
-<tr><td>レビュー</td><td>平均点だけでなくレビュー件数も合わせて確認します。</td></tr>
-<tr><td>出演者・メーカー</td><td>好みに合う出演者、メーカー、シリーズから候補を絞れます。</td></tr>
-<tr><td>新着</td><td>発売日の新しい作品を確認したい場合は「新着」タブを使います。</td></tr>
+<tr><td>総合人気</td><td>FANZA Webサービスの人気順データを候補選びの入口として使います。</td></tr>
+<tr><td>女優別</td><td>現在の人気作品から候補女優を抽出し、各女優の作品を人気順で再取得します。</td></tr>
+<tr><td>ジャンル別</td><td>好みのジャンルに該当する作品だけを人気順で比較できます。</td></tr>
+<tr><td>メーカー別</td><td>メーカーごとの作品傾向を見ながら人気作品を比較できます。</td></tr>
+<tr><td>価格・レビュー</td><td>表示価格、値引き、平均評価、レビュー件数を合わせて確認します。</td></tr>
 </table>
 
 <h2>このページのデータについて</h2>
-<div class="editorial-box">商品名・商品画像・価格・レビュー等はFANZA Webサービスから取得しています。当サイトは取得したデータを比較しやすい形に整理して表示します。表示時点から情報が変わる場合があるため、購入・申込み前には必ずリンク先の公式情報をご確認ください。</div>
+<div class="editorial-box">商品名・商品画像・価格・レビュー等はFANZA Webサービスから取得しています。女優・ジャンル・メーカーの候補は当サイトが取得商品データから自動抽出し、各条件に該当する商品を人気順で再取得します。各人物・ジャンル・メーカーそのものを評価・格付けするものではありません。</div>
 
 <h2>関連ガイド</h2><div class="intent-grid">
 <a class="intent-card content-card" href="/articles/before-buy-checklist.html"><strong>FANZAで購入する前のチェックリスト7項目</strong><span>購入前に確認したいポイントをまとめた初心者向けチェックリストです。</span></a>
 <a class="intent-card content-card" href="/articles/budget-guide.html"><strong>予算を決めてから作品を選ぶ方法</strong><span>価格を比較しながら予算内で候補を絞る方法を整理します。</span></a>
-<a class="intent-card content-card" href="/articles/coupon-guide.html"><strong>クーポンやキャンペーンを使う前の確認ポイント</strong><span>キャンペーン条件や期限を見落とさないための確認方法です。</span></a>
-<a class="intent-card content-card" href="/articles/fanza-beginner.html"><strong>FANZAとは？初めて使う前に知っておきたい基本</strong><span>初めて利用する方向けに購入前の基本を整理します。</span></a>
+<a class="intent-card content-card" href="/articles/genre-search.html"><strong>ジャンルから作品を探すときのコツ</strong><span>作品数が多いときにジャンルから候補を絞る方法です。</span></a>
+<a class="intent-card content-card" href="/articles/maker-search.html"><strong>メーカー・レーベルから探すコツ</strong><span>メーカーやレーベルを軸に候補を探す方法を整理します。</span></a>
 </div>
 </div></section>
-</main><footer><div class="wrap">
-<div class="footer-links">
-<a href="/about.html">サイトについて</a>
-<a href="/editorial-policy/">編集方針</a>
-<a href="/privacy.html">プライバシー</a>
-</div>
-<div>© 2026 オカズはよりどりみどり. All rights reserved.</div>
-</div></footer><div id="ageModal" class="age-modal" aria-modal="true" role="dialog"><div class="age-box"><h2>18歳以上ですか？</h2><p>このサイトは成人向けサービスに関する情報を扱います。18歳未満の方は閲覧できません。</p><div class="age-actions"><button id="ageYes">18歳以上です</button><a class="btn-secondary" href="https://www.google.com/">退出する</a></div><p class="small">年齢確認はこのブラウザ内に保存されます。</p></div></div><script src="/assets/affiliate-config.js"></script><script src="/assets/v6.js"></script><script src="/assets/app.js"></script><script src="/assets/ga4-config.js"></script><script src="/assets/ga4.js"></script><script src="/assets/affiliate-compliance.js"></script></body></html>
+</main><footer><div class="wrap"><div class="footer-links"><a href="/about.html">サイトについて</a><a href="/editorial-policy/">編集方針</a><a href="/privacy.html">プライバシー</a></div><div>© 2026 オカズはよりどりみどり. All rights reserved.</div></div></footer><div id="ageModal" class="age-modal" aria-modal="true" role="dialog"><div class="age-box"><h2>18歳以上ですか？</h2><p>このサイトは成人向けサービスに関する情報を扱います。18歳未満の方は閲覧できません。</p><div class="age-actions"><button id="ageYes">18歳以上です</button><a class="btn-secondary" href="https://www.google.com/">退出する</a></div><p class="small">年齢確認はこのブラウザ内に保存されます。</p></div></div><script src="/assets/affiliate-config.js"></script><script src="/assets/v6.js"></script><script src="/assets/app.js"></script><script src="/assets/ga4-config.js"></script><script src="/assets/ga4.js"></script><script src="/assets/affiliate-compliance.js"></script></body></html>
