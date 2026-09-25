@@ -11,7 +11,34 @@ API_URL = "https://api.dmm.com/affiliate/v3/ItemList"
 OUTPUT = Path("public/data/fanza-products.json")
 
 
-def fetch_items(api_id: str, affiliate_id: str, sort: str, hits: int = 12) -> list[dict]:
+def _names(iteminfo: dict, key: str, limit: int = 5) -> list[str]:
+    values = iteminfo.get(key) or []
+    out: list[str] = []
+    for value in values:
+        if isinstance(value, dict):
+            name = str(value.get("name") or "").strip()
+            if name:
+                out.append(name)
+        elif isinstance(value, str) and value.strip():
+            out.append(value.strip())
+        if len(out) >= limit:
+            break
+    return out
+
+
+def _first_name(iteminfo: dict, key: str) -> str:
+    values = _names(iteminfo, key, 1)
+    return values[0] if values else ""
+
+
+def _price_value(value: object) -> int | None:
+    if value is None:
+        return None
+    digits = "".join(ch for ch in str(value) if ch.isdigit())
+    return int(digits) if digits else None
+
+
+def fetch_items(api_id: str, affiliate_id: str, sort: str, hits: int = 30) -> list[dict]:
     params = {
         "api_id": api_id,
         "affiliate_id": affiliate_id,
@@ -25,7 +52,7 @@ def fetch_items(api_id: str, affiliate_id: str, sort: str, hits: int = 12) -> li
     }
     req = Request(
         API_URL + "?" + urlencode(params),
-        headers={"User-Agent": "okazu-yoridori-midori/1.0"},
+        headers={"User-Agent": "okazu-yoridori-midori/2.0"},
     )
     with urlopen(req, timeout=30) as res:
         payload = json.loads(res.read().decode("utf-8"))
@@ -40,9 +67,18 @@ def fetch_items(api_id: str, affiliate_id: str, sort: str, hits: int = 12) -> li
         image = item.get("imageURL") or {}
         prices = item.get("prices") or {}
         review = item.get("review") or {}
+        iteminfo = item.get("iteminfo") or {}
         affiliate_url = item.get("affiliateURL") or ""
         if not affiliate_url:
             continue
+
+        price = prices.get("price") or ""
+        list_price = prices.get("list_price") or ""
+        price_value = _price_value(price)
+        list_price_value = _price_value(list_price)
+        discount_rate = None
+        if price_value and list_price_value and list_price_value > price_value:
+            discount_rate = round((1 - price_value / list_price_value) * 100)
 
         normalized.append(
             {
@@ -50,10 +86,18 @@ def fetch_items(api_id: str, affiliate_id: str, sort: str, hits: int = 12) -> li
                 "title": item.get("title") or "",
                 "affiliateURL": affiliate_url,
                 "imageURL": image.get("large") or image.get("small") or image.get("list") or "",
-                "price": prices.get("price") or "",
+                "price": price,
+                "priceValue": price_value,
+                "listPrice": list_price,
+                "listPriceValue": list_price_value,
+                "discountRate": discount_rate,
                 "reviewAverage": review.get("average") or "",
                 "reviewCount": review.get("count") or 0,
                 "date": item.get("date") or "",
+                "maker": _first_name(iteminfo, "maker"),
+                "series": _first_name(iteminfo, "series"),
+                "actresses": _names(iteminfo, "actress", 4),
+                "genres": _names(iteminfo, "genre", 5),
             }
         )
     return normalized
@@ -67,8 +111,8 @@ def main() -> None:
         print("DMM_API_ID is not configured; FANZA API cache generation skipped.")
         return
 
-    ranking = fetch_items(api_id, affiliate_id, "rank")
-    latest = fetch_items(api_id, affiliate_id, "date")
+    ranking = fetch_items(api_id, affiliate_id, "rank", 30)
+    latest = fetch_items(api_id, affiliate_id, "date", 30)
 
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(
