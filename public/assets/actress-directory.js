@@ -32,21 +32,9 @@
       .replace(/[\u3099\u309a]/g, '');
   }
 
-  function kanaGroup(row) {
+  function firstKana(row) {
     const source = toHiragana(row.ruby || row.name).trim();
-    const c = source.charAt(0);
-    if ('あいうえお'.includes(c)) return 'あ';
-    if ('かきくけこ'.includes(c)) return 'か';
-    if ('さしすせそ'.includes(c)) return 'さ';
-    if ('たちつてと'.includes(c)) return 'た';
-    if ('なにぬねの'.includes(c)) return 'な';
-    if ('はひふへほ'.includes(c)) return 'は';
-    if ('まみむめも'.includes(c)) return 'ま';
-    if ('やゆよ'.includes(c)) return 'や';
-    if ('らりるれろ'.includes(c)) return 'ら';
-    if ('わをん'.includes(c)) return 'わ';
-    if (/^[a-z0-9]/i.test(String(row.ruby || row.name || '').trim())) return '英数';
-    return '他';
+    return source.charAt(0);
   }
 
   function buildKanaNav() {
@@ -54,10 +42,23 @@
     const nav = document.createElement('div');
     nav.id = 'actressKanaNav';
     nav.className = 'actress-kana-nav';
-    const groups = ['all','あ','か','さ','た','な','は','ま','や','ら','わ','英数','他'];
-    const labels = {all:'すべて'};
-    nav.innerHTML = groups.map(group => `<button type="button" data-kana="${group}" class="${group === 'all' ? 'active' : ''}">${labels[group] || group}</button>`).join('');
+
+    const kana = [
+      'あ','い','う','え','お',
+      'か','き','く','け','こ',
+      'さ','し','す','せ','そ',
+      'た','ち','つ','て','と',
+      'な','に','ぬ','ね','の',
+      'は','ひ','ふ','へ','ほ',
+      'ま','み','む','め','も',
+      'や','ゆ','よ',
+      'ら','り','る','れ','ろ',
+      'わ','を','ん'
+    ];
+
+    nav.innerHTML = `<button type="button" data-kana="all" class="active kana-all">すべて</button>${kana.map(ch => `<button type="button" data-kana="${ch}">${ch}</button>`).join('')}`;
     input.closest('.actress-search').insertAdjacentElement('afterend', nav);
+
     nav.addEventListener('click', event => {
       const button = event.target.closest('button[data-kana]');
       if (!button) return;
@@ -83,7 +84,7 @@
       const name = String(row.name || '').toLowerCase();
       const ruby = String(row.ruby || '').toLowerCase();
       const textMatch = !q || name.includes(q) || ruby.includes(q);
-      const kanaMatch = activeKana === 'all' || kanaGroup(row) === activeKana;
+      const kanaMatch = activeKana === 'all' || firstKana(row) === activeKana;
       return textMatch && kanaMatch;
     });
 
