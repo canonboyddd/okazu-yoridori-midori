@@ -138,4 +138,9 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     } catch (_) {}
   });
+
+  const apiScript = document.createElement("script");
+  apiScript.src = "/assets/fanza-products.js?v=20260925-2108";
+  apiScript.async = true;
+  document.body.appendChild(apiScript);
 });
