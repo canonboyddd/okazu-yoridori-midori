@@ -17,6 +17,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Build FANZA API cache
+        env:
+          DMM_API_ID: ${{ secrets.DMM_API_ID }}
+          DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
+        run: python scripts/build_fanza_api.py
+
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:
