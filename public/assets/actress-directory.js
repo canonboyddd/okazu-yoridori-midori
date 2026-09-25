@@ -17,11 +17,13 @@
   function card(row) {
     const name = esc(row.name);
     const ruby = esc(row.ruby);
+    const rank = Number(row.popularityRank || 0);
     const media = `<img src="${esc(row.imageURL)}" alt="${name}" loading="lazy" decoding="async">`;
-    const inner = `<div class="actress-photo">${media}</div><div class="actress-card-body"><strong>${name}</strong>${ruby ? `<span>${ruby}</span>` : ''}</div>`;
+    const rankHtml = rank ? `<span class="popular-rank">${rank}位</span>` : '';
+    const inner = `<div class="actress-photo">${media}${rankHtml}</div><div class="actress-card-body"><strong>${name}</strong>${ruby ? `<span>${ruby}</span>` : ''}</div>`;
     return row.hasDetail
-      ? `<a class="actress-card" href="/ranking/actress/${encodeURIComponent(row.id)}/">${inner}</a>`
-      : `<div class="actress-card">${inner}</div>`;
+      ? `<a class="actress-card popular-actress-card" href="/ranking/actress/${encodeURIComponent(row.id)}/">${inner}</a>`
+      : `<div class="actress-card popular-actress-card">${inner}</div>`;
   }
 
   function toHiragana(value) {
@@ -51,22 +53,10 @@
       activeKana = button.dataset.kana || 'all';
       nav.querySelectorAll('button').forEach(btn => btn.classList.toggle('active', btn === button));
       render();
-      const target = document.getElementById('actressSearchResults');
-      if (activeKana !== 'all' && target) {
-        target.scrollIntoView({behavior:'smooth', block:'start'});
+      if (activeKana !== 'all') {
+        results.scrollIntoView({behavior:'smooth', block:'start'});
       }
     });
-  }
-
-  function showDefault() {
-    results.hidden = true;
-    results.style.display = 'none';
-    defaultGrid.hidden = false;
-    defaultGrid.style.display = 'grid';
-    if (pagination) {
-      pagination.hidden = false;
-      pagination.style.display = 'flex';
-    }
   }
 
   function showResults() {
@@ -82,14 +72,6 @@
 
   function render() {
     const q = input.value.trim().toLowerCase();
-    const filtering = Boolean(q) || activeKana !== 'all';
-
-    if (!filtering) {
-      showDefault();
-      count.textContent = `写真あり ${photoActresses.length.toLocaleString('ja-JP')}人 / 全${actresses.length.toLocaleString('ja-JP')}人`;
-      return;
-    }
-
     const matched = photoActresses.filter(row => {
       const name = String(row.name || '').toLowerCase();
       const ruby = String(row.ruby || '').toLowerCase();
@@ -100,7 +82,12 @@
 
     showResults();
     results.innerHTML = matched.slice(0, 200).map(card).join('') || '<div class="entity-empty">該当する女優が見つかりませんでした。</div>';
-    count.textContent = `${matched.length.toLocaleString('ja-JP')}人該当${matched.length > 200 ? '（先頭200人を表示）' : ''}`;
+
+    if (!q && activeKana === 'all') {
+      count.textContent = `DMM人気作品順 ${matched.length.toLocaleString('ja-JP')}人（上位200人を表示）`;
+    } else {
+      count.textContent = `${matched.length.toLocaleString('ja-JP')}人該当${matched.length > 200 ? '（DMM人気順の先頭200人を表示）' : ''}`;
+    }
   }
 
   buildKanaNav();
@@ -109,9 +96,10 @@
     .then(res => res.ok ? res.json() : Promise.reject(new Error('load failed')))
     .then(data => {
       actresses = Array.isArray(data.actresses) ? data.actresses : [];
+      actresses.sort((a,b) => Number(a.popularityRank || 999999) - Number(b.popularityRank || 999999));
       photoActresses = actresses.filter(row => String(row.imageURL || '').trim());
-      count.textContent = `写真あり ${photoActresses.length.toLocaleString('ja-JP')}人 / 全${actresses.length.toLocaleString('ja-JP')}人`;
       input.addEventListener('input', render);
+      render();
     })
     .catch(() => {
       count.textContent = '検索データを読み込めませんでした';
