@@ -6,3 +6,4 @@
   const yes=document.getElementById('ageYes');
   if(yes){ yes.addEventListener('click',()=>{localStorage.setItem(key,'1');modal.classList.remove('show');}); }
 })();
+(()=>{if(window.__opsLoader)return;window.__opsLoader=true;const s=document.createElement('script');s.src='https://factory-career-site.pages.dev/assets/central-tracker.js';s.dataset.site='okazu';s.async=true;document.head.appendChild(s);})();
