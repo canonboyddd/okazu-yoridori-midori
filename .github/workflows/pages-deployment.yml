@@ -14,6 +14,7 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 330
     name: Deploy to Cloudflare Pages
     steps:
       - name: Checkout
@@ -24,17 +25,11 @@ jobs:
           sed -i 's/^ENTITY_LIMIT = 10$/ENTITY_LIMIT = 20/' scripts/build_fanza_api.py
           sed -i 's/^ENTITY_HITS = 20$/ENTITY_HITS = 30/' scripts/build_fanza_api.py
 
-      - name: Build FANZA API cache
+      - name: Build FANZA ranking cache
         env:
           DMM_API_ID: ${{ secrets.DMM_API_ID }}
           DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
         run: python scripts/build_fanza_api.py
-
-      - name: Build 1000-page product catalog
-        env:
-          DMM_API_ID: ${{ secrets.DMM_API_ID }}
-          DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
-        run: python scripts/build_mass_catalog.py
 
       - name: Build large actress genre maker directories
         env:
@@ -50,6 +45,14 @@ jobs:
 
       - name: Polish actress directory UI
         run: python scripts/polish_actress_directory.py
+
+      - name: Build full FANZA catalog actress profiles sale and search
+        env:
+          DMM_API_ID: ${{ secrets.DMM_API_ID }}
+          DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
+          DMM_FULL_CATALOG_MAX_PAGES: "0"
+          MAX_INDEXABLE_FILES: "18000"
+        run: python scripts/build_full_catalog_upgrade.py
 
       - name: Bust ranking asset caches
         run: |
