@@ -6,12 +6,16 @@ from pathlib import Path
 ROOT = Path("public")
 SITE_AFFILIATE_ID = "okazumidori-001"
 
-API_LINK_RE = re.compile(r"([?&]af_id=)okazumidori-99[0-9](&ch=)api(?=(&|\"|'|<|$))")
+API_LINK_RE = re.compile(
+    r"((?:\?|&|&amp;)af_id=)okazumidori-99[0-9]((?:&|&amp;)ch=)api(?=((?:&|&amp;)|\"|'|<|$))"
+)
 
 
 def rewrite_text(text: str) -> tuple[str, int]:
     def repl(match: re.Match[str]) -> str:
-        return f"{match.group(1)}{SITE_AFFILIATE_ID}{match.group(2)}link_tool&ch_id=link"
+        html_escaped = "&amp;" in match.group(2)
+        sep = "&amp;" if html_escaped else "&"
+        return f"{match.group(1)}{SITE_AFFILIATE_ID}{match.group(2)}link_tool{sep}ch_id=link"
 
     return API_LINK_RE.subn(repl, text)
 
