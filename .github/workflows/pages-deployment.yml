@@ -1,4 +1,4 @@
-name: Deploy to Cloudflare Pages
+name: Fast Cloudflare Pages deploy
 
 on:
   push:
@@ -6,98 +6,101 @@ on:
     paths-ignore:
       - '.github/workflows/**'
   workflow_dispatch:
-  schedule:
-    # 19:30 UTC = 04:30 JST (next day)
-    - cron: "30 19 * * *"
 
 permissions:
   contents: read
+  actions: read
   deployments: write
 
+concurrency:
+  group: cloudflare-pages-production
+  cancel-in-progress: false
+
 jobs:
-  deploy:
+  fast-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 330
-    name: Deploy to Cloudflare Pages
+    timeout-minutes: 20
+    name: Fast deploy without FANZA rebuild
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Expand FANZA catalog settings
+      - name: Find latest production snapshot
+        id: snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          sed -i 's/^ENTITY_LIMIT = 10$/ENTITY_LIMIT = 20/' scripts/build_fanza_api.py
-          sed -i 's/^ENTITY_HITS = 20$/ENTITY_HITS = 30/' scripts/build_fanza_api.py
+          RUN_ID="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/daily-data-deploy.yml/runs?branch=main&status=success&per_page=1" --jq '.workflow_runs[0].id // empty')"
+          if [ -z "$RUN_ID" ]; then
+            echo "No successful daily production snapshot exists yet. Wait for the initial full refresh to finish."
+            exit 1
+          fi
+          SNAPSHOT_SHA="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}" --jq '.head_sha')"
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "sha=$SNAPSHOT_SHA" >> "$GITHUB_OUTPUT"
+          echo "Using production snapshot from run $RUN_ID at $SNAPSHOT_SHA"
 
-      - name: Build FANZA ranking cache
+      - name: Guard against unapplied heavy generator changes
         env:
-          DMM_API_ID: ${{ secrets.DMM_API_ID }}
-          DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
-        run: python scripts/build_fanza_api.py
-
-      - name: Build large actress genre maker directories
-        env:
-          DMM_API_ID: ${{ secrets.DMM_API_ID }}
-          DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
-        run: python scripts/build_large_taxonomy_directory.py
-
-      - name: Rebuild actress search data across full 50-on
-        env:
-          DMM_API_ID: ${{ secrets.DMM_API_ID }}
-          DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
-        run: python scripts/rebuild_actress_directory_balanced.py
-
-      - name: Polish actress directory UI
-        run: python scripts/polish_actress_directory.py
-
-      - name: Build full FANZA catalog actress profiles sale and search
-        env:
-          DMM_API_ID: ${{ secrets.DMM_API_ID }}
-          DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
-          DMM_FULL_CATALOG_MAX_PAGES: "0"
-          MAX_INDEXABLE_FILES: "18000"
-        run: python scripts/build_full_catalog_upgrade.py
-
-      - name: Build DMM popularity-first actress ranking and 50-on data
-        env:
-          DMM_API_ID: ${{ secrets.DMM_API_ID }}
-          DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
-          DMM_POPULAR_ACTRESS_TARGET: "10000"
-          DMM_POPULAR_ACTRESS_MAX_PAGES: "500"
-          DMM_POPULAR_ACTRESS_ENRICH_MISSING: "300"
-        run: python scripts/build_dmm_popular_actresses.py
-
-      - name: Bust ranking asset caches
+          SNAPSHOT_SHA: ${{ steps.snapshot.outputs.sha }}
         run: |
-          find public -type f -name '*.html' -exec sed -i \
-            -e 's#entity-rankings.css?v=20260925-2200#entity-rankings.css?v=20260925-2315#g' \
-            -e 's#entity-rankings.css?v=20260925-2252#entity-rankings.css?v=20260925-2315#g' {} +
+          git diff --name-only "$SNAPSHOT_SHA" "$GITHUB_SHA" > /tmp/since-snapshot.txt
+          cat /tmp/since-snapshot.txt
+          if grep -Eq '^scripts/(build_fanza_api|build_large_taxonomy_directory|rebuild_actress_directory_balanced|build_full_catalog_upgrade|build_dmm_popular_actresses)\.py$' /tmp/since-snapshot.txt; then
+            echo "Heavy FANZA generator changes exist after the latest production snapshot. The full data workflow must finish first."
+            exit 1
+          fi
 
-      - name: Move ranking PR disclosure below products
-        run: python scripts/move_ranking_pr_notice.py
+      - name: Download latest production snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ steps.snapshot.outputs.run_id }}
+        run: |
+          rm -rf snapshot
+          mkdir snapshot
+          gh run download "$RUN_ID" -n production-public -D snapshot
 
-      - name: Rewrite FANZA affiliate links for site ID
-        run: python scripts/fix_fanza_affiliate_links.py
+      - name: Restore snapshot and overlay repository public changes
+        env:
+          SNAPSHOT_SHA: ${{ steps.snapshot.outputs.sha }}
+        run: |
+          mv public repo-public
+          mkdir public
+          if [ -d snapshot/public ]; then
+            cp -a snapshot/public/. public/
+          else
+            cp -a snapshot/. public/
+          fi
 
-      - name: Enhance generated ranking SEO
-        run: python scripts/enhance_fanza_seo.py
+          git diff --name-only "$SNAPSHOT_SHA" "$GITHUB_SHA" -- public/ > /tmp/public-changes.txt
+          while IFS= read -r path; do
+            [ -n "$path" ] || continue
+            rel="${path#public/}"
+            src="repo-public/$rel"
+            dst="public/$rel"
+            if [ -e "$src" ]; then
+              mkdir -p "$(dirname "$dst")"
+              rm -rf "$dst"
+              cp -a "$src" "$dst"
+            else
+              rm -rf "$dst"
+            fi
+          done < /tmp/public-changes.txt
 
-      - name: Link homepage to ranking hubs
-        run: python scripts/add_ranking_hub_links.py
-
-      - name: Add FC2 Adult section and site-wide navigation
-        run: python scripts/add_fc2_adult_section.py
-
-      - name: Apply colorful readable theme
-        run: python scripts/inject_colorful_readability.py
-
-      - name: Apply competitor benchmark UX upgrade
-        run: python scripts/apply_competitor_benchmark_upgrade.py
-
-      - name: Optimize homepage for immediate discovery
-        run: python scripts/optimize_home_for_immediate_discovery.py
-
-      - name: Audit every public page and remove operator-only copy
-        run: python scripts/remove_internal_operator_copy.py
+      - name: Apply fast site transformations
+        run: |
+          python scripts/polish_actress_directory.py
+          python scripts/move_ranking_pr_notice.py
+          python scripts/fix_fanza_affiliate_links.py
+          python scripts/enhance_fanza_seo.py
+          python scripts/add_ranking_hub_links.py
+          python scripts/add_fc2_adult_section.py
+          python scripts/inject_colorful_readability.py
+          python scripts/apply_competitor_benchmark_upgrade.py
+          python scripts/optimize_home_for_immediate_discovery.py
+          python scripts/remove_internal_operator_copy.py
 
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
