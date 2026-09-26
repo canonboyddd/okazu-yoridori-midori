@@ -3,9 +3,12 @@ name: Deploy to Cloudflare Pages
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '.github/workflows/**'
   workflow_dispatch:
   schedule:
-    - cron: "15 3 * * *"
+    # 19:30 UTC = 04:30 JST (next day)
+    - cron: "30 19 * * *"
 
 permissions:
   contents: read
