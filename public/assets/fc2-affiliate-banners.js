@@ -17,17 +17,18 @@
 
   const style = document.createElement('style');
   style.textContent = `
-    .fc2-aff-wrap{width:min(1100px,92vw);margin:28px auto;padding:18px;border:1px solid #e6e9f0;border-radius:18px;background:linear-gradient(135deg,#fff7fb 0%,#f5f7ff 48%,#f2fff8 100%);box-shadow:0 8px 24px rgba(15,23,42,.06)}
-    .fc2-aff-label{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:13px;font-weight:800;color:#9d174d}
-    .fc2-aff-label span{display:inline-flex;padding:4px 8px;border-radius:999px;background:#ffe4ee;color:#be185d}
-    .fc2-aff-copy{margin:0 0 14px;color:#344054;font-size:14px;font-weight:600;line-height:1.7}
-    .fc2-aff-banner{display:flex;justify-content:center;align-items:center;text-decoration:none;overflow:hidden;border-radius:12px;background:#fff}
-    .fc2-aff-banner img{display:block;max-width:100%;height:auto;border:0}
-    .fc2-aff-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-    .fc2-aff-card{display:flex;flex-direction:column;gap:8px;padding:12px;background:#fff;border:1px solid #e6e9f0;border-radius:14px;text-decoration:none;color:#111827;box-shadow:0 4px 12px rgba(15,23,42,.04)}
-    .fc2-aff-card strong{font-size:14px;line-height:1.5}
-    .fc2-aff-card img{display:block;width:100%;height:auto;max-width:320px;margin:auto;border:0;border-radius:8px}
-    @media(max-width:800px){.fc2-aff-grid{grid-template-columns:1fr}.fc2-aff-wrap{padding:14px}.fc2-aff-copy{font-size:13px}}
+    .fc2-aff-wrap{width:min(860px,92vw)!important;margin:22px auto!important;padding:14px 16px!important;border:1px solid #e6e9f0!important;border-radius:16px!important;background:linear-gradient(135deg,#fff7fb 0%,#f5f7ff 48%,#f2fff8 100%)!important;box-shadow:0 6px 18px rgba(15,23,42,.05)!important;min-height:0!important;height:auto!important;overflow:hidden!important}
+    .fc2-aff-label{display:flex!important;align-items:center!important;gap:8px!important;margin:0 0 8px!important;font-size:12px!important;font-weight:800!important;color:#9d174d!important}
+    .fc2-aff-label span{display:inline-flex!important;padding:3px 7px!important;border-radius:999px!important;background:#ffe4ee!important;color:#be185d!important}
+    .fc2-aff-copy{margin:0 0 10px!important;color:#344054!important;font-size:13px!important;font-weight:600!important;line-height:1.55!important}
+    .fc2-aff-banner{display:flex!important;justify-content:center!important;align-items:center!important;width:min(728px,100%)!important;height:auto!important;min-height:0!important;max-height:100px!important;margin:0 auto!important;padding:0!important;text-decoration:none!important;overflow:hidden!important;border-radius:10px!important;background:transparent!important;aspect-ratio:auto!important}
+    .fc2-aff-banner img{display:block!important;width:auto!important;max-width:100%!important;height:90px!important;max-height:90px!important;min-height:0!important;margin:0 auto!important;padding:0!important;border:0!important;object-fit:contain!important;aspect-ratio:auto!important}
+    .fc2-aff-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:12px!important}
+    .fc2-aff-card{display:flex!important;flex-direction:column!important;gap:7px!important;padding:10px!important;background:#fff!important;border:1px solid #e6e9f0!important;border-radius:12px!important;text-decoration:none!important;color:#111827!important;box-shadow:0 3px 10px rgba(15,23,42,.04)!important;min-height:0!important;height:auto!important}
+    .fc2-aff-card strong{font-size:13px!important;line-height:1.4!important}
+    .fc2-aff-card img{display:block!important;width:auto!important;max-width:100%!important;height:100px!important;max-height:100px!important;margin:auto!important;border:0!important;border-radius:8px!important;object-fit:contain!important;aspect-ratio:auto!important}
+    .fc2-aff-fallback{display:flex!important;align-items:center!important;justify-content:center!important;min-height:48px!important;padding:10px 14px!important;border-radius:10px!important;background:linear-gradient(135deg,#fce7f3,#ede9fe,#e0f2fe)!important;color:#1f2937!important;font-size:13px!important;font-weight:800!important;text-align:center!important}
+    @media(max-width:800px){.fc2-aff-grid{grid-template-columns:1fr!important}.fc2-aff-wrap{padding:12px!important;margin:16px auto!important}.fc2-aff-copy{font-size:12px!important}.fc2-aff-banner{width:min(320px,100%)!important;max-height:100px!important}.fc2-aff-banner img{height:100px!important;max-height:100px!important}}
   `;
   document.head.appendChild(style);
 
@@ -35,6 +36,17 @@
     const payload = {affiliate_service:'FC2 Affiliate',affiliate_target:name,page_path:location.pathname};
     if(typeof window.gtag === 'function') window.gtag('event','affiliate_click',payload);
     else if(Array.isArray(window.dataLayer)) window.dataLayer.push({event:'affiliate_click',...payload});
+  }
+
+  function fallback(a, p){
+    const old = a.querySelector('img');
+    if(old) old.remove();
+    if(!a.querySelector('.fc2-aff-fallback')){
+      const div = document.createElement('div');
+      div.className = 'fc2-aff-fallback';
+      div.textContent = p.name + ' の公式ページを見る';
+      a.appendChild(div);
+    }
   }
 
   function makeBanner(p, compact=false){
@@ -55,9 +67,14 @@
     const img = document.createElement('img');
     img.src = bannerBase + encodeURIComponent(bid);
     img.alt = p.name + ' PR広告';
-    img.loading = 'lazy';
+    img.loading = 'eager';
+    img.decoding = 'async';
     if(mobile){img.width=320;img.height=100;} else {img.width=728;img.height=90;}
+    img.addEventListener('error',()=>fallback(a,p),{once:true});
     a.appendChild(img);
+    setTimeout(()=>{
+      if(!img.complete || img.naturalWidth === 0 || img.naturalHeight === 0) fallback(a,p);
+    },3500);
     return a;
   }
 
