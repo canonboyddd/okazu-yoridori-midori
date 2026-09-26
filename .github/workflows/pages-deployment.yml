@@ -90,6 +90,9 @@ jobs:
       - name: Apply competitor benchmark UX upgrade
         run: python scripts/apply_competitor_benchmark_upgrade.py
 
+      - name: Optimize homepage for immediate discovery
+        run: python scripts/optimize_home_for_immediate_discovery.py
+
       - name: Audit every public page and remove operator-only copy
         run: python scripts/remove_internal_operator_copy.py
 
