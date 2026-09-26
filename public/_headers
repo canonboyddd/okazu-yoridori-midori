@@ -9,3 +9,6 @@
 
 /assets/app.js
   Cache-Control: no-cache, must-revalidate
+
+/assets/dynamic-product.js
+  Cache-Control: no-cache, must-revalidate
