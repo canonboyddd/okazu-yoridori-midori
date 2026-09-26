@@ -90,6 +90,9 @@ jobs:
       - name: Apply competitor benchmark UX upgrade
         run: python scripts/apply_competitor_benchmark_upgrade.py
 
+      - name: Audit every public page and remove operator-only copy
+        run: python scripts/remove_internal_operator_copy.py
+
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:
