@@ -1,0 +1,128 @@
+name: Daily FANZA data refresh
+
+on:
+  schedule:
+    # 19:30 UTC = 04:30 JST (next day)
+    - cron: "30 19 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      # Run a full rebuild when heavy data-generation logic changes.
+      - '.github/workflows/daily-data-deploy.yml'
+      - 'scripts/build_fanza_api.py'
+      - 'scripts/build_large_taxonomy_directory.py'
+      - 'scripts/rebuild_actress_directory_balanced.py'
+      - 'scripts/build_full_catalog_upgrade.py'
+      - 'scripts/build_dmm_popular_actresses.py'
+
+permissions:
+  contents: read
+  actions: read
+  deployments: write
+
+concurrency:
+  group: cloudflare-pages-production
+  cancel-in-progress: false
+
+jobs:
+  refresh-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    name: Refresh FANZA data and deploy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Expand FANZA catalog settings
+        run: |
+          sed -i 's/^ENTITY_LIMIT = 10$/ENTITY_LIMIT = 20/' scripts/build_fanza_api.py
+          sed -i 's/^ENTITY_HITS = 20$/ENTITY_HITS = 30/' scripts/build_fanza_api.py
+
+      - name: Build FANZA ranking cache
+        env:
+          DMM_API_ID: ${{ secrets.DMM_API_ID }}
+          DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
+        run: python scripts/build_fanza_api.py
+
+      - name: Build large actress genre maker directories
+        env:
+          DMM_API_ID: ${{ secrets.DMM_API_ID }}
+          DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
+        run: python scripts/build_large_taxonomy_directory.py
+
+      - name: Rebuild actress search data across full 50-on
+        env:
+          DMM_API_ID: ${{ secrets.DMM_API_ID }}
+          DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
+        run: python scripts/rebuild_actress_directory_balanced.py
+
+      - name: Polish actress directory UI
+        run: python scripts/polish_actress_directory.py
+
+      - name: Build full FANZA catalog actress profiles sale and search
+        env:
+          DMM_API_ID: ${{ secrets.DMM_API_ID }}
+          DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
+          DMM_FULL_CATALOG_MAX_PAGES: "0"
+          MAX_INDEXABLE_FILES: "18000"
+        run: python scripts/build_full_catalog_upgrade.py
+
+      - name: Build DMM popularity-first actress ranking and 50-on data
+        env:
+          DMM_API_ID: ${{ secrets.DMM_API_ID }}
+          DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
+          DMM_POPULAR_ACTRESS_TARGET: "10000"
+          DMM_POPULAR_ACTRESS_MAX_PAGES: "500"
+          DMM_POPULAR_ACTRESS_ENRICH_MISSING: "300"
+        run: python scripts/build_dmm_popular_actresses.py
+
+      - name: Bust ranking asset caches
+        run: |
+          find public -type f -name '*.html' -exec sed -i \
+            -e 's#entity-rankings.css?v=20260925-2200#entity-rankings.css?v=20260925-2315#g' \
+            -e 's#entity-rankings.css?v=20260925-2252#entity-rankings.css?v=20260925-2315#g' {} +
+
+      - name: Move ranking PR disclosure below products
+        run: python scripts/move_ranking_pr_notice.py
+
+      - name: Rewrite FANZA affiliate links for site ID
+        run: python scripts/fix_fanza_affiliate_links.py
+
+      - name: Enhance generated ranking SEO
+        run: python scripts/enhance_fanza_seo.py
+
+      - name: Link homepage to ranking hubs
+        run: python scripts/add_ranking_hub_links.py
+
+      - name: Add FC2 Adult section and site-wide navigation
+        run: python scripts/add_fc2_adult_section.py
+
+      - name: Apply colorful readable theme
+        run: python scripts/inject_colorful_readability.py
+
+      - name: Apply competitor benchmark UX upgrade
+        run: python scripts/apply_competitor_benchmark_upgrade.py
+
+      - name: Optimize homepage for immediate discovery
+        run: python scripts/optimize_home_for_immediate_discovery.py
+
+      - name: Audit every public page and remove operator-only copy
+        run: python scripts/remove_internal_operator_copy.py
+
+      - name: Save production snapshot for fast deploys
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-public
+          path: public
+          retention-days: 3
+          compression-level: 1
+          if-no-files-found: error
+
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy public --project-name=okazu-yoridori-midori --branch=main
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
