@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 
 ROOT = Path("public")
-ASSET = "/assets/colorful-readable-v1.css?v=20260926-0155"
+ASSET = "/assets/colorful-readable-v1.css?v=20260926-1632"
 LINK = f'<link rel="stylesheet" href="{ASSET}">'
 
 
