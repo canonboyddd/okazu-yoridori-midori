@@ -159,6 +159,22 @@ header{
 .entity-pr{color:#8a3b13!important;font-weight:800!important}
 .entity-rank{font-weight:950!important}
 
+/* Discount badges must stay high-contrast even though generic span text is darkened above. */
+.fc-discount,.entity-discount,.product-discount,.fc-price span{
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  background:linear-gradient(135deg,#e11d48,#f97316)!important;
+  border:2px solid rgba(255,255,255,.92)!important;
+  font-weight:950!important;
+  letter-spacing:.02em!important;
+  box-shadow:0 3px 10px rgba(127,29,29,.38)!important;
+}
+.fc-discount{
+  padding:6px 10px!important;
+  font-size:.82rem!important;
+  line-height:1!important;
+}
+
 /* Statistic boxes */
 .revenue-step b,.stat-card b,.ranking-stat b{font-weight:900!important}
 
@@ -195,4 +211,5 @@ footer{background:linear-gradient(90deg,#fff5f8,#f4f8ff,#f3fff8)!important;color
 @media(max-width:700px){
   body{font-size:15.5px!important}
   .topnav a{font-size:.9rem!important}
+  .fc-discount{font-size:.9rem!important;padding:7px 11px!important}
 }
