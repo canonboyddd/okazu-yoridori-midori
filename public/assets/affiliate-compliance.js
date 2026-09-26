@@ -146,7 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // FC2 Affiliate placements. Kept separate from FANZA links so tracking and disclosures stay clear.
   const fc2Script = document.createElement("script");
-  fc2Script.src = "/assets/fc2-affiliate-banners.js?v=20260926-0140";
+  fc2Script.src = "/assets/fc2-affiliate-banners.js?v=20260926-1032";
   fc2Script.async = true;
   document.body.appendChild(fc2Script);
 });
