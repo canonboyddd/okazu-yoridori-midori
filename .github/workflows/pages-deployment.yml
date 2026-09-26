@@ -87,6 +87,9 @@ jobs:
       - name: Apply colorful readable theme
         run: python scripts/inject_colorful_readability.py
 
+      - name: Apply competitor benchmark UX upgrade
+        run: python scripts/apply_competitor_benchmark_upgrade.py
+
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:
