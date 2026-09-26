@@ -101,10 +101,7 @@ def build_main() -> str:
     ranking = choose_rows(product_data.get("ranking") or [], 8)
     deals = choose_rows(product_data.get("deals") or [], 6)
     high_rated = choose_rows(product_data.get("highRated") or [], 4)
-
-    actresses_all = actress_data.get("actresses") or []
-    actresses = choose_rows(actresses_all, 8)
-
+    actresses = choose_rows(actress_data.get("actresses") or [], 8)
     groups = entity_data.get("groups") or {}
     genres = (groups.get("genre") or [])[:12]
 
@@ -113,6 +110,9 @@ def build_main() -> str:
     actress_html = "".join(actress_card(row) for row in actresses) or '<p>人気女優データを更新中です。</p>'
     genre_html = "".join(genre_card(row) for row in genres) or '<a class="instant-genre" href="/ranking/genre/"><strong>ジャンル一覧</strong></a>'
     high_html = "".join(product_card(row) for row in high_rated)
+    high_section = ""
+    if high_html:
+        high_section = f'''<section class="instant-section"><div class="instant-wrap"><div class="instant-section-head"><div><span>評価から選ぶ</span><h2>高評価作品</h2></div><a href="/ranking/">ほかのランキング →</a></div><div class="instant-product-grid instant-small-grid">{high_html}</div></div></section>'''
 
     return f'''<main class="instant-home">
 <section class="instant-hero"><div class="instant-wrap">
@@ -144,7 +144,7 @@ def build_main() -> str:
 <div class="instant-product-grid">{deals_html}</div>
 </div></section>
 
-{f'''<section class="instant-section"><div class="instant-wrap"><div class="instant-section-head"><div><span>評価から選ぶ</span><h2>高評価作品</h2></div><a href="/ranking/">ほかのランキング →</a></div><div class="instant-product-grid instant-small-grid">{high_html}</div></div></section>''' if high_html else ''}
+{high_section}
 
 <section class="instant-section instant-more"><div class="instant-wrap">
 <h2>ほかの探し方</h2>
@@ -166,7 +166,6 @@ def main() -> None:
         text = text.replace("</head>", f'<link rel="stylesheet" href="{CSS}"></head>', 1)
 
     text = re.sub(r'<main\b.*?</main>', build_main(), text, count=1, flags=re.S)
-
     text = re.sub(r'<title>.*?</title>', '<title>人気作品・女優・ジャンルからすぐ探す | オカズはよりどりみどり</title>', text, count=1, flags=re.S)
     text = re.sub(r'<meta name="description" content="[^"]*">', '<meta name="description" content="FANZAの人気作品、人気女優、ジャンル、セールからすぐに作品を探せる成人向け作品ナビ。">', text, count=1)
 
