@@ -36,6 +36,10 @@ document.addEventListener("DOMContentLoaded", () => {
     .affiliate-actions{display:flex;gap:10px;flex-wrap:wrap}
     .affiliate-cta{display:inline-flex;align-items:center;justify-content:center;padding:11px 16px;border-radius:999px;background:#111;color:#fff!important;text-decoration:none!important;font-weight:700}
     .affiliate-cta:hover{opacity:.86}
+    .fc-description{margin:18px 0 16px;padding:18px 20px;border:1px solid #e7d7ee;border-radius:16px;background:linear-gradient(135deg,#fff8fb,#f8f7ff)}
+    .fc-description-title{font-size:1rem;font-weight:800;color:#111827;margin-bottom:8px}
+    .fc-description-text{margin:0;color:#374151;line-height:1.8;font-size:.95rem}
+    .fc-description-note{margin:8px 0 0;color:#6b7280;font-size:.76rem;line-height:1.6}
   `;
   document.head.appendChild(style);
 
@@ -87,6 +91,50 @@ document.addEventListener("DOMContentLoaded", () => {
   else if (path.startsWith("/subscription")) kind = "subscription";
 
   document.querySelectorAll(".affiliate-slot").forEach(slot => fillSlot(slot, kind));
+
+  function detailValue(label) {
+    const terms = document.querySelectorAll(".fc-detail dl dt");
+    for (const dt of terms) {
+      if ((dt.textContent || "").trim() === label) {
+        return (dt.nextElementSibling?.textContent || "").replace(/\s+/g, " ").trim();
+      }
+    }
+    return "";
+  }
+
+  function ensureProductDescription() {
+    if (!path.startsWith("/products/") || document.querySelector(".fc-description")) return;
+    const detail = document.querySelector(".fc-detail");
+    if (!detail) return;
+    const title = (detail.querySelector("h1")?.textContent || "").replace(/\s+/g, " ").trim();
+    if (!title) return;
+
+    const actress = detailValue("出演者");
+    const maker = detailValue("メーカー");
+    const genre = detailValue("ジャンル");
+    const pieces = [];
+    if (actress && actress !== "情報なし") pieces.push(`${actress}出演`);
+    if (maker && maker !== "情報なし") pieces.push(`${maker}の作品`);
+
+    let text = `「${title}」は`;
+    if (pieces.length) text += `${pieces.join("、")}です。`;
+    else text += "FANZAで配信されている作品です。";
+    if (genre && genre !== "情報なし") text += ` ジャンルは${genre}。`;
+    text += " 出演者・メーカー・ジャンル・レビュー・配信日など、作品選びに必要な情報をこのページでまとめています。";
+
+    const box = document.createElement("section");
+    box.className = "fc-description";
+    box.setAttribute("aria-label", "作品紹介");
+    box.innerHTML = `<div class="fc-description-title">作品紹介</div><p class="fc-description-text"></p><p class="fc-description-note">商品内容・価格・配信状況はFANZA公式の最新情報もあわせてご確認ください。</p>`;
+    box.querySelector(".fc-description-text").textContent = text;
+
+    const dl = detail.querySelector("dl");
+    const cta = detail.querySelector(".fc-cta");
+    if (dl) dl.insertAdjacentElement("afterend", box);
+    else if (cta) cta.insertAdjacentElement("beforebegin", box);
+  }
+
+  ensureProductDescription();
 
   if (path === "/" && !document.querySelector("[data-home-affiliate='1']") && links.video) {
     const notice = document.querySelector(".hero .notice");
