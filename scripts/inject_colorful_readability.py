@@ -4,9 +4,32 @@ import re
 from pathlib import Path
 
 ROOT = Path("public")
-ASSET_VERSION = "20260927-1418"
+ASSET_VERSION = "20260927-1420"
 ASSET = f"/assets/colorful-readable-v1.css?v={ASSET_VERSION}"
 LINK = f'<link rel="stylesheet" href="{ASSET}">'
+
+
+def ensure_product_cta(text: str) -> str:
+    if 'class="fc-detail"' not in text or 'class="fc-cta"' not in text:
+        return text
+    if 'fc-cta-top' in text:
+        return text
+
+    match = re.search(r'(<a class="fc-cta"[^>]*>)(.*?)(</a>)', text, flags=re.S | re.I)
+    if not match:
+        return text
+
+    top = match.group(0)
+    top = top.replace('class="fc-cta"', 'class="fc-cta fc-cta-top"', 1)
+    top = re.sub(r'>.*?</a>$', '>FANZAでこの作品を見る</a>', top, flags=re.S | re.I)
+
+    return re.sub(
+        r'(<div class="fc-price">.*?</div>)',
+        lambda m: m.group(1) + top,
+        text,
+        count=1,
+        flags=re.S | re.I,
+    )
 
 
 def patch(path: Path) -> bool:
@@ -37,6 +60,10 @@ def patch(path: Path) -> bool:
     )
     if "</head>" in text:
         text = text.replace("</head>", LINK + "</head>", 1)
+
+    # Product detail pages get a second, obvious affiliate CTA immediately under
+    # the price while retaining the existing CTA below the metadata.
+    text = ensure_product_cta(text)
 
     if text != before:
         path.write_text(text, encoding="utf-8")
