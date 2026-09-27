@@ -31,6 +31,39 @@ body{
     linear-gradient(180deg,#fffdfd 0%,#ffffff 34%,#fbfdff 72%,#fffaf3 100%)!important;
 }
 
+/* Product detail pages must never fall back to the old dark theme. */
+.section,.section>.wrap,.fc-detail,.fc-detail>div{
+  color:var(--cr-ink)!important;
+}
+.fc-detail h1,.fc-detail dt,.fc-detail dd,.fc-detail a:not(.fc-cta),.fc-price,.fc-breadcrumb{
+  color:var(--cr-ink)!important;
+}
+.fc-pr{color:#475569!important;font-weight:700!important}
+
+/* Primary FANZA affiliate action: highly visible and easy to tap on mobile. */
+.fc-cta{
+  display:flex!important;
+  width:100%!important;
+  min-height:58px!important;
+  margin:20px 0 8px!important;
+  padding:12px 18px!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border:2px solid rgba(255,255,255,.96)!important;
+  border-radius:16px!important;
+  background:linear-gradient(135deg,#e11d74,#f43f5e 48%,#7c3aed)!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  font-size:1.04rem!important;
+  line-height:1.35!important;
+  font-weight:950!important;
+  text-decoration:none!important;
+  text-align:center!important;
+  box-shadow:0 10px 24px rgba(190,24,93,.30)!important;
+}
+.fc-cta::after{content:" →"!important;margin-left:.35em!important}
+.fc-cta:hover,.fc-cta:focus{filter:brightness(.96) saturate(1.08)!important;transform:translateY(-1px)!important}
+
 /* Make formerly thin/gray text clearly readable */
 p,li,dd,dt,td,th,label,span,.article p,.hero p,.hub-hero p,.card p,.money-card p,
 .intent-card span,.mini-card span,.flow-card small,.faq-item-v9 p,.directory-note,
@@ -223,7 +256,7 @@ header{
 .compare-table th,.compare-table td{border-color:#cfd8e5!important}
 .breadcrumbs,.entity-breadcrumb{color:#334155!important;font-weight:700!important}
 .breadcrumbs a,.entity-breadcrumb a{color:#1d4ed8!important;font-weight:800!important}
-.article a,.section a:not(.entity-product-card):not(.actress-card):not(.taxonomy-card):not(.entity-hub-card){text-decoration-thickness:1.5px!important;text-underline-offset:2px!important}
+.article a,.section a:not(.entity-product-card):not(.actress-card):not(.taxonomy-card):not(.entity-hub-card):not(.fc-cta){text-decoration-thickness:1.5px!important;text-underline-offset:2px!important}
 
 /* Inputs / filters */
 input,select,textarea,.searchbox input,.actress-search input{
@@ -252,4 +285,5 @@ footer{background:linear-gradient(90deg,#fff5f8,#f4f8ff,#f3fff8)!important;color
   .topnav a{font-size:.9rem!important}
   .fc-discount{font-size:.9rem!important;padding:7px 11px!important}
   .popular-rank{min-width:50px!important;height:34px!important;padding:0 10px!important;font-size:.82rem!important}
+  .fc-cta{min-height:62px!important;font-size:1.08rem!important;margin-top:22px!important}
 }
