@@ -1,6 +1,32 @@
 document.addEventListener("DOMContentLoaded", () => {
   const cfg = window.AFFILIATE_CONFIG || {};
   const links = cfg.links || {};
+  const API_AFFILIATE_ID = cfg.apiAffiliateId || "okazumidori-990";
+
+  function repairFanzaAffiliateUrl(raw) {
+    if (!raw) return raw;
+    try {
+      const u = new URL(raw, location.href);
+      const host = u.hostname.toLowerCase();
+      const isAffiliateHost = ["al.dmm.co.jp", "al.dmm.com", "al.fanza.co.jp", "al.fanza.com"].includes(host);
+      if (!isAffiliateHost) return raw;
+
+      const afId = u.searchParams.get("af_id") || "";
+      const channel = u.searchParams.get("ch") || "";
+      if (afId === "okazumidori-001" && channel === "link_tool") {
+        u.searchParams.set("af_id", API_AFFILIATE_ID);
+        u.searchParams.set("ch", "api");
+        u.searchParams.delete("ch_id");
+        return u.toString();
+      }
+    } catch (_) {}
+    return raw;
+  }
+
+  window.repairFanzaAffiliateUrl = repairFanzaAffiliateUrl;
+  Object.keys(links).forEach(key => {
+    links[key] = repairFanzaAffiliateUrl(links[key]);
+  });
 
   const style = document.createElement("style");
   style.textContent = `
@@ -15,7 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function button(url, text, target) {
     const a = document.createElement("a");
-    a.href = url;
+    a.href = repairFanzaAffiliateUrl(url);
     a.textContent = text;
     a.className = "affiliate-cta";
     a.target = "_blank";
@@ -101,25 +127,37 @@ document.addEventListener("DOMContentLoaded", () => {
     walker.currentNode.nodeValue = t;
   }
 
-  document.querySelectorAll("a[href]").forEach(a => {
+  function isDmmHost(hostname) {
+    const h = String(hostname || "").toLowerCase();
+    return [
+      "dmm.co.jp",
+      "dmm.com",
+      "al.dmm.co.jp",
+      "al.dmm.com",
+      "fanza.co.jp",
+      "al.fanza.co.jp",
+      "affiliate.dmm.com"
+    ].some(x => h === x || h.endsWith("." + x));
+  }
+
+  function prepareAffiliateAnchor(a) {
+    if (!a || !a.href) return;
     try {
+      const repaired = repairFanzaAffiliateUrl(a.href);
+      if (repaired && repaired !== a.href) a.href = repaired;
+
       const u = new URL(a.href, location.href);
-      const h = u.hostname.toLowerCase();
-      const isDmm = [
-        "dmm.co.jp",
-        "dmm.com",
-        "al.dmm.co.jp",
-        "al.dmm.com",
-        "fanza.co.jp",
-        "affiliate.dmm.com"
-      ].some(x => h === x || h.endsWith("." + x));
-      if (!isDmm) return;
+      if (!isDmmHost(u.hostname)) return;
 
       const rel = new Set((a.getAttribute("rel") || "").split(/\s+/).filter(Boolean));
       ["sponsored", "nofollow", "noopener", "noreferrer"].forEach(x => rel.add(x));
       a.setAttribute("rel", [...rel].join(" "));
 
+      if (a.dataset.affiliateTrackingReady === "1") return;
+      a.dataset.affiliateTrackingReady = "1";
       a.addEventListener("click", () => {
+        const finalUrl = repairFanzaAffiliateUrl(a.href);
+        if (finalUrl && finalUrl !== a.href) a.href = finalUrl;
         const target = a.dataset.affiliateTarget || u.hostname;
         if (typeof window.gtag === "function") {
           window.gtag("event", "affiliate_click", {
@@ -137,10 +175,28 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
     } catch (_) {}
+  }
+
+  document.querySelectorAll("a[href]").forEach(prepareAffiliateAnchor);
+
+  const observer = new MutationObserver(mutations => {
+    for (const mutation of mutations) {
+      for (const node of mutation.addedNodes) {
+        if (!(node instanceof Element)) continue;
+        if (node.matches("a[href]")) prepareAffiliateAnchor(node);
+        node.querySelectorAll?.("a[href]").forEach(prepareAffiliateAnchor);
+      }
+    }
   });
+  observer.observe(document.body, {childList: true, subtree: true});
+
+  document.addEventListener("click", event => {
+    const a = event.target instanceof Element ? event.target.closest("a[href]") : null;
+    if (a) prepareAffiliateAnchor(a);
+  }, true);
 
   const apiScript = document.createElement("script");
-  apiScript.src = "/assets/fanza-products.js?v=20260925-2108";
+  apiScript.src = "/assets/fanza-products.js?v=20260928-0115";
   apiScript.async = true;
   document.body.appendChild(apiScript);
 
