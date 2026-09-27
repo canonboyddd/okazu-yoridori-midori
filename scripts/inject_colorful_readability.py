@@ -4,13 +4,29 @@ import re
 from pathlib import Path
 
 ROOT = Path("public")
-ASSET = "/assets/colorful-readable-v1.css?v=20260926-1645"
+ASSET_VERSION = "20260927-1418"
+ASSET = f"/assets/colorful-readable-v1.css?v={ASSET_VERSION}"
 LINK = f'<link rel="stylesheet" href="{ASSET}">'
 
 
 def patch(path: Path) -> bool:
     text = path.read_text(encoding="utf-8")
     before = text
+
+    # Force fresh base/product CSS after design fixes so mobile browsers do not
+    # keep an older dark-theme or CTA stylesheet for 24 hours.
+    text = re.sub(
+        r'/assets/style-white-v2\.css(?:\?v=[^"\']*)?',
+        f'/assets/style-white-v2.css?v={ASSET_VERSION}',
+        text,
+        flags=re.I,
+    )
+    text = re.sub(
+        r'/assets/full-catalog\.css(?:\?v=[^"\']*)?',
+        f'/assets/full-catalog.css?v={ASSET_VERSION}',
+        text,
+        flags=re.I,
+    )
 
     # Remove older copies/versions so the theme is loaded exactly once and last.
     text = re.sub(
