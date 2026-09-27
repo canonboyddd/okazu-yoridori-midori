@@ -10,6 +10,8 @@ on:
     paths:
       # Run a full rebuild when heavy data-generation logic changes.
       - '.github/workflows/daily-data-deploy.yml'
+      - '.github/workflows/helpers/patch_full_catalog_comments.py'
+      - '.github/workflows/helpers/enhance_product_descriptions.py'
       - 'scripts/build_fanza_api.py'
       - 'scripts/build_large_taxonomy_directory.py'
       - 'scripts/rebuild_actress_directory_balanced.py'
@@ -60,6 +62,9 @@ jobs:
       - name: Polish actress directory UI
         run: python scripts/polish_actress_directory.py
 
+      - name: Enable full-catalog product comments
+        run: python .github/workflows/helpers/patch_full_catalog_comments.py
+
       - name: Build full FANZA catalog actress profiles sale and search
         env:
           DMM_API_ID: ${{ secrets.DMM_API_ID }}
@@ -109,6 +114,9 @@ jobs:
 
       - name: Audit every public page and remove operator-only copy
         run: python scripts/remove_internal_operator_copy.py
+
+      - name: Add product descriptions from FANZA comments
+        run: python .github/workflows/helpers/enhance_product_descriptions.py
 
       - name: Build instant product lookup
         run: python .github/workflows/helpers/build_catalog_lookup_index.py

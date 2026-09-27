@@ -7,7 +7,7 @@ from pathlib import Path
 ROOT = Path("public")
 MANIFEST = ROOT / "data" / "full-catalog-manifest.json"
 OUTPUT = ROOT / "data" / "catalog-lookup.json"
-LOADER_VERSION = "20260927-0945"
+LOADER_VERSION = "20260927-1450"
 
 
 def safe_id(value: object) -> str:
