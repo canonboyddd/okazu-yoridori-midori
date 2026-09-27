@@ -124,3 +124,6 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy public --project-name=okazu-yoridori-midori --branch=main
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Hand off to Production QA
+        run: echo "Cloudflare Pages deployment completed; Production QA will run after this workflow succeeds."
