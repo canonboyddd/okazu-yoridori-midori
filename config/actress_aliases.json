@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "description": "公開情報で同一人物と確認できた女優名義を、FANZAカタログ上で1ページに名寄せするための手動管理データ。曖昧な短い呼び名は登録しない。",
+  "groups": [
+    {
+      "canonical": "乃木蛍",
+      "aliases": [],
+      "extraContentIds": ["300MAAN-740"],
+      "sourceUrls": [
+        "https://seesaawiki.jp/av_neme/d/%C7%B5%CC%DA%B7%D6",
+        "https://seesaawiki.jp/w/sougouwiki/d/MEGATRA"
+      ],
+      "note": "参考ページで乃木蛍の同一人物作品として確認できる個別作品IDを補助登録。"
+    },
+    {
+      "canonical": "花崎こはる",
+      "aliases": ["遠藤千夏", "花嵜小春"],
+      "extraContentIds": [],
+      "sourceUrls": [
+        "https://seesaawiki.jp/w/sougouwiki/d/%B2%D6%BA%EA%A4%B3%A4%CF%A4%EB"
+      ],
+      "note": "公開ページの見出しで同一人物の別名義として掲載。"
+    },
+    {
+      "canonical": "桜華みゆ",
+      "aliases": ["天使みゆ", "夢咲美優"],
+      "extraContentIds": ["277DCV-283", "300MIUM-1234", "200GANA-3200", "SIKA-358", "GDRT-031", "300MAAN-719", "YAHO-020"],
+      "sourceUrls": [
+        "https://seesaawiki.jp/w/sougouwiki/d/%BA%F9%B2%DA%A4%DF%A4%E6"
+      ],
+      "note": "公開ページの見出しにある別名義と、同ページの配信作品IDを補助登録。"
+    }
+  ]
+}
