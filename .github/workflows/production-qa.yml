@@ -1,0 +1,31 @@
+name: Production QA
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows:
+      - "Fast Cloudflare Pages deploy"
+      - "Actress alias merge deploy"
+    types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-qa
+  cancel-in-progress: true
+
+jobs:
+  qa:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Wait for Cloudflare propagation
+        run: sleep 20
+
+      - name: Run production QA
+        run: python scripts/qa_production.py
