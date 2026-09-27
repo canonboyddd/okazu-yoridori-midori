@@ -13,6 +13,15 @@
 /assets/dynamic-product.js
   Cache-Control: no-cache, must-revalidate
 
+/assets/style-white-v2.css
+  Cache-Control: no-cache, must-revalidate
+
+/assets/full-catalog.css
+  Cache-Control: no-cache, must-revalidate
+
+/assets/colorful-readable-v1.css
+  Cache-Control: no-cache, must-revalidate
+
 /products/view/*
   Cache-Control: no-cache, no-store, must-revalidate
 
