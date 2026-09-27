@@ -13,6 +13,15 @@
 /assets/dynamic-product.js
   Cache-Control: no-cache, must-revalidate
 
+/assets/affiliate-config.js
+  Cache-Control: no-cache, must-revalidate
+
+/assets/affiliate-compliance.js
+  Cache-Control: no-cache, must-revalidate
+
+/assets/fanza-products.js
+  Cache-Control: no-cache, must-revalidate
+
 /assets/style-white-v2.css
   Cache-Control: no-cache, must-revalidate
 
