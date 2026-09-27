@@ -5,6 +5,7 @@ from pathlib import Path
 
 ROOT = Path("public")
 API_AFFILIATE_ID = "okazumidori-990"
+CACHE_VERSION = "20260928-0115"
 
 # A previous deployment step incorrectly converted official DMM/FANZA API links
 # from:
@@ -20,12 +21,30 @@ BROKEN_LINK_RE = re.compile(
     r"(?:&|&amp;)ch_id=link"
 )
 
+SCRIPT_PATTERNS = (
+    "affiliate-config.js",
+    "affiliate-compliance.js",
+    "fanza-products.js",
+    "dynamic-product.js",
+)
 
-def rewrite_text(text: str) -> tuple[str, int]:
+
+def rewrite_text(text: str, suffix: str) -> tuple[str, int]:
+    total = 0
+
     def repl(match: re.Match[str]) -> str:
         return f"{match.group(1)}{API_AFFILIATE_ID}{match.group(2)}api"
 
-    return BROKEN_LINK_RE.subn(repl, text)
+    text, count = BROKEN_LINK_RE.subn(repl, text)
+    total += count
+
+    if suffix == ".html":
+        for name in SCRIPT_PATTERNS:
+            pattern = re.compile(rf"(/assets/{re.escape(name)})(?:\?v=[^\"']*)?")
+            text, count = pattern.subn(rf"\1?v={CACHE_VERSION}", text)
+            total += count
+
+    return text, total
 
 
 def main() -> None:
@@ -41,8 +60,8 @@ def main() -> None:
         except UnicodeDecodeError:
             continue
 
-        new_text, count = rewrite_text(text)
-        if not count:
+        new_text, count = rewrite_text(text, path.suffix.lower())
+        if not count or new_text == text:
             continue
 
         path.write_text(new_text, encoding="utf-8")
@@ -50,8 +69,8 @@ def main() -> None:
         total += count
 
     print(
-        f"Restored {total} legacy FANZA links across {touched} files "
-        f"to official API affiliate ID {API_AFFILIATE_ID}"
+        f"Repaired/busted {total} FANZA link or script references across {touched} files; "
+        f"API affiliate ID={API_AFFILIATE_ID}, cache={CACHE_VERSION}"
     )
 
 
