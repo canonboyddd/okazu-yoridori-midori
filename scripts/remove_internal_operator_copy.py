@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import re
+import subprocess
+import sys
 from pathlib import Path
 
 ROOT = Path("public")
@@ -103,6 +105,11 @@ def patch(path: Path) -> tuple[bool, list[str]]:
 
 
 def main() -> None:
+    # Ensure every genre/category reachable from the catalog has a real product page.
+    helper = Path(".github/workflows/helpers/ensure_genre_category_pages.py")
+    if helper.exists():
+        subprocess.run([sys.executable, str(helper)], check=True)
+
     checked = 0
     changed = 0
     remaining_pages: list[tuple[str, list[str]]] = []
