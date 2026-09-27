@@ -98,7 +98,6 @@ jobs:
           python scripts/move_ranking_pr_notice.py
           python scripts/fix_fanza_affiliate_links.py
           python scripts/enhance_fanza_seo.py
-          python scripts/add_ranking_hub_links.py
           python scripts/add_fc2_adult_section.py
           python scripts/inject_colorful_readability.py
           python scripts/apply_competitor_benchmark_upgrade.py
