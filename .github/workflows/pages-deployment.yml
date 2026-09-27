@@ -89,6 +89,9 @@ jobs:
             fi
           done < /tmp/public-changes.txt
 
+      - name: Build instant product lookup
+        run: python .github/workflows/helpers/build_catalog_lookup_index.py
+
       - name: Apply fast site transformations
         run: |
           python scripts/polish_actress_directory.py
