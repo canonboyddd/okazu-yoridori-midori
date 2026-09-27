@@ -27,12 +27,35 @@ def main() -> None:
     if not INDEX.exists():
         print("Homepage missing; ranking hub link enhancement skipped.")
         return
+
     text = INDEX.read_text(encoding="utf-8")
+    # Idempotent: remove the previous generated block first.
     text = re.sub(re.escape(START) + r".*?" + re.escape(END), "", text, flags=re.S)
-    marker = '<section class="section" id="articles">'
-    if marker not in text:
-        raise RuntimeError("Homepage article section marker not found")
-    text = text.replace(marker, BLOCK + "\n\n" + marker, 1)
+
+    preferred_markers = [
+        '<section class="section" id="articles">',
+        '<section id="articles" class="section">',
+        '<section class="section articles">',
+    ]
+
+    inserted = False
+    for marker in preferred_markers:
+        if marker in text:
+            text = text.replace(marker, BLOCK + "\n\n" + marker, 1)
+            inserted = True
+            break
+
+    # Homepage markup changes over time. Do not fail the whole production deploy
+    # just because the article-section marker was renamed; place the block at
+    # the end of <main> instead.
+    if not inserted and "</main>" in text:
+        text = text.replace("</main>", BLOCK + "\n</main>", 1)
+        inserted = True
+
+    if not inserted:
+        print("Homepage has no safe insertion point; ranking hub enhancement skipped.")
+        return
+
     INDEX.write_text(text, encoding="utf-8")
     print("Added homepage internal links to actress, genre and maker ranking hubs")
 
