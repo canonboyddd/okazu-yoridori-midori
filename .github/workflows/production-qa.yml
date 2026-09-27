@@ -25,7 +25,19 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Wait for Cloudflare propagation
-        run: sleep 20
+        run: sleep 30
 
-      - name: Run production QA
-        run: python scripts/qa_production.py
+      - name: Run production QA with propagation retries
+        run: |
+          for attempt in 1 2 3; do
+            echo "Production QA attempt ${attempt}/3"
+            if python scripts/qa_production.py; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              echo "Production may still be propagating; waiting 30 seconds before retry."
+              sleep 30
+            fi
+          done
+          echo "Production QA failed after 3 attempts."
+          exit 1
