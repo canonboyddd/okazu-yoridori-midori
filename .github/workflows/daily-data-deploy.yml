@@ -92,8 +92,8 @@ jobs:
       - name: Move ranking PR disclosure below products
         run: python scripts/move_ranking_pr_notice.py
 
-      - name: Rewrite FANZA affiliate links for site ID
-        run: python scripts/fix_fanza_affiliate_links.py
+      # IMPORTANT: Keep the affiliateURL returned by the DMM/FANZA API unchanged.
+      # Rewriting API links to link_tool URLs invalidates the generated ad link.
 
       - name: Enhance generated ranking SEO
         run: python scripts/enhance_fanza_seo.py
