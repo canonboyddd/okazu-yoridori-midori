@@ -1,0 +1,135 @@
+name: FANZA product description enrichment
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/product-description-enrich.yml'
+      - 'scripts/enrich_catalog_comments.py'
+      - '.github/workflows/helpers/enhance_product_descriptions.py'
+
+permissions:
+  contents: read
+  actions: read
+  deployments: write
+
+concurrency:
+  group: cloudflare-pages-production
+  cancel-in-progress: false
+
+jobs:
+  enrich-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Find latest successful production snapshot
+        id: snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RUN_ID="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/daily-data-deploy.yml/runs?branch=main&status=success&per_page=1" --jq '.workflow_runs[0].id // empty')"
+          if [ -z "$RUN_ID" ]; then
+            echo "No successful production snapshot found."
+            exit 1
+          fi
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "Using production snapshot run $RUN_ID"
+
+      - name: Download production snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ steps.snapshot.outputs.run_id }}
+        run: |
+          rm -rf snapshot
+          mkdir snapshot
+          gh run download "$RUN_ID" -n production-public -D snapshot
+
+      - name: Restore snapshot and overlay current runtime files
+        run: |
+          mv public repo-public
+          mkdir public
+          if [ -d snapshot/public ]; then
+            cp -a snapshot/public/. public/
+          else
+            cp -a snapshot/. public/
+          fi
+          for rel in \
+            _headers \
+            assets/affiliate-config.js \
+            assets/affiliate-compliance.js \
+            assets/dynamic-product.js \
+            assets/fanza-products.js \
+            assets/fc2-adult.css \
+            fc2-adult/index.html; do
+            if [ -f "repo-public/$rel" ]; then
+              mkdir -p "public/$(dirname "$rel")"
+              cp -f "repo-public/$rel" "public/$rel"
+            fi
+          done
+
+      - name: Add official FANZA product comments to catalog
+        env:
+          DMM_API_ID: ${{ secrets.DMM_API_ID }}
+          DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
+        run: python scripts/enrich_catalog_comments.py
+
+      - name: Insert official descriptions into product pages
+        run: python .github/workflows/helpers/enhance_product_descriptions.py
+
+      - name: Preserve FANZA affiliate links
+        run: python scripts/fix_fanza_affiliate_links.py
+
+      - name: Preserve actress alias pages and enhanced profiles
+        run: |
+          python scripts/validate_actress_alias_db.py
+          python scripts/merge_actress_aliases.py
+          python scripts/enhance_actress_alias_pages.py
+
+      - name: Verify description enrichment
+        run: |
+          test -s public/data/product-description-enrichment.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          summary = json.loads(Path('public/data/product-description-enrichment.json').read_text(encoding='utf-8'))
+          print(summary)
+          if int(summary.get('productsWithOfficialComment') or 0) < 1:
+              raise SystemExit('No official FANZA product comments were found')
+          pages = list(Path('public/products').glob('*/index.html'))
+          with_description = 0
+          for page in pages:
+              text = page.read_text(encoding='utf-8', errors='ignore')
+              if 'PRODUCT_DESCRIPTION_START' in text and '作品紹介' in text:
+                  with_description += 1
+          print('Static product pages with official description:', with_description)
+          if with_description < 1:
+              raise SystemExit('No product page received an official description')
+          PY
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy public --project-name=okazu-yoridori-midori --branch=main
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Wait for Cloudflare propagation
+        run: sleep 30
+
+      - name: Final production QA
+        run: |
+          for attempt in 1 2 3; do
+            echo "Production QA attempt ${attempt}/3"
+            if python scripts/qa_production.py; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              sleep 30
+            fi
+          done
+          exit 1
