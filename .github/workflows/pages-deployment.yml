@@ -13,8 +13,8 @@ permissions:
   deployments: write
 
 concurrency:
-  group: cloudflare-pages-fast
-  cancel-in-progress: true
+  group: cloudflare-pages-production
+  cancel-in-progress: false
 
 jobs:
   fast-deploy:
@@ -104,6 +104,9 @@ jobs:
           python scripts/run_home_optimizer_safe.py
           python scripts/remove_internal_operator_copy.py
           python .github/workflows/helpers/enhance_product_descriptions.py
+          python scripts/validate_actress_alias_db.py
+          python scripts/merge_actress_aliases.py
+          python scripts/enhance_actress_alias_pages.py
 
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
