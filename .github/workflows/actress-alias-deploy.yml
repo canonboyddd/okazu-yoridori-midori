@@ -8,6 +8,9 @@ on:
       - '.github/workflows/actress-alias-deploy.yml'
       - 'config/actress_aliases.json'
       - 'scripts/merge_actress_aliases.py'
+  workflow_run:
+    workflows: ["Daily FANZA data refresh"]
+    types: [completed]
 
 permissions:
   contents: read
@@ -20,6 +23,7 @@ concurrency:
 
 jobs:
   alias-deploy:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
