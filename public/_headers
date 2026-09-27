@@ -12,3 +12,15 @@
 
 /assets/dynamic-product.js
   Cache-Control: no-cache, must-revalidate
+
+/products/view/*
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/data/catalog-lookup.json
+  Cache-Control: no-cache, must-revalidate
+
+/data/full-catalog-manifest.json
+  Cache-Control: no-cache, must-revalidate
+
+/data/fanza-products.json
+  Cache-Control: no-cache, must-revalidate
