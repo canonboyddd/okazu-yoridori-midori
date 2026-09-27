@@ -13,8 +13,8 @@ permissions:
   deployments: write
 
 concurrency:
-  group: cloudflare-pages-production
-  cancel-in-progress: false
+  group: cloudflare-pages-fast
+  cancel-in-progress: true
 
 jobs:
   fast-deploy:
