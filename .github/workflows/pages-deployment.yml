@@ -101,7 +101,7 @@ jobs:
           python scripts/add_fc2_adult_section.py
           python scripts/inject_colorful_readability.py
           python scripts/apply_competitor_benchmark_upgrade.py
-          python scripts/optimize_home_for_immediate_discovery.py
+          python scripts/run_home_optimizer_safe.py
           python scripts/remove_internal_operator_copy.py
           python .github/workflows/helpers/enhance_product_descriptions.py
 
