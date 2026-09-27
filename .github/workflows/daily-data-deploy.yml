@@ -12,6 +12,7 @@ on:
       - '.github/workflows/daily-data-deploy.yml'
       - '.github/workflows/helpers/patch_full_catalog_comments.py'
       - '.github/workflows/helpers/enhance_product_descriptions.py'
+      - 'scripts/run_home_optimizer_safe.py'
       - 'scripts/build_fanza_api.py'
       - 'scripts/build_large_taxonomy_directory.py'
       - 'scripts/rebuild_actress_directory_balanced.py'
@@ -110,7 +111,7 @@ jobs:
         run: python scripts/apply_competitor_benchmark_upgrade.py
 
       - name: Optimize homepage for immediate discovery
-        run: python scripts/optimize_home_for_immediate_discovery.py
+        run: python scripts/run_home_optimizer_safe.py
 
       - name: Audit every public page and remove operator-only copy
         run: python scripts/remove_internal_operator_copy.py
