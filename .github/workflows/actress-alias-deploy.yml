@@ -7,7 +7,9 @@ on:
     paths:
       - '.github/workflows/actress-alias-deploy.yml'
       - 'config/actress_aliases.json'
+      - 'scripts/validate_actress_alias_db.py'
       - 'scripts/merge_actress_aliases.py'
+      - 'scripts/enhance_actress_alias_pages.py'
   workflow_run:
     workflows: ["Daily FANZA data refresh"]
     types: [completed]
@@ -65,7 +67,9 @@ jobs:
             assets/affiliate-config.js \
             assets/affiliate-compliance.js \
             assets/dynamic-product.js \
-            assets/fanza-products.js; do
+            assets/fanza-products.js \
+            assets/fc2-adult.css \
+            fc2-adult/index.html; do
             if [ -f "repo-public/$rel" ]; then
               mkdir -p "public/$(dirname "$rel")"
               cp -f "repo-public/$rel" "public/$rel"
@@ -75,19 +79,37 @@ jobs:
       - name: Preserve valid FANZA affiliate links
         run: python scripts/fix_fanza_affiliate_links.py
 
+      - name: Validate actress identity database
+        run: python scripts/validate_actress_alias_db.py
+
       - name: Merge same actress across alternate names
         run: python scripts/merge_actress_aliases.py
 
+      - name: Enhance actress profile pages
+        run: python scripts/enhance_actress_alias_pages.py
+
       - name: Verify alias output
         run: |
+          test -s public/data/actress-identity-db.json
           test -s public/data/actress-alias-groups.json
+          test -s public/data/actress-profile-summary.json
           test -s public/ranking/actress/aliases/index.html
+          test -s public/assets/actress-profile-v2.css
           python - <<'PY'
           import json
           from pathlib import Path
+          config = json.loads(Path('config/actress_aliases.json').read_text(encoding='utf-8'))
           data = json.loads(Path('public/data/actress-alias-groups.json').read_text(encoding='utf-8'))
+          summary = json.loads(Path('public/data/actress-profile-summary.json').read_text(encoding='utf-8'))
+          if len(config.get('groups') or []) < 20:
+              raise SystemExit('Alias identity database unexpectedly small')
           if not data.get('groups'):
               raise SystemExit('No resolved actress alias groups')
+          if not summary.get('profiles'):
+              raise SystemExit('No enhanced actress profiles')
+          print('Configured identities:', len(config.get('groups') or []))
+          print('Resolved identities:', len(data.get('groups') or []))
+          print('Enhanced profiles:', len(summary.get('profiles') or []))
           print('Resolved alias groups:', [(g['canonical'], g['workCount']) for g in data['groups']])
           PY
           if grep -RIl --include='*.html' --include='*.json' --include='*.js' 'af_id=okazumidori-001.*ch=link_tool' public | head -n 1 | grep -q .; then
