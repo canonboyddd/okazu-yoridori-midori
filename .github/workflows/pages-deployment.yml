@@ -96,7 +96,7 @@ jobs:
         run: |
           python scripts/polish_actress_directory.py
           python scripts/move_ranking_pr_notice.py
-          # Keep DMM/FANZA API affiliateURL values unchanged.
+          python scripts/fix_fanza_affiliate_links.py
           python scripts/enhance_fanza_seo.py
           python scripts/add_ranking_hub_links.py
           python scripts/inject_colorful_readability.py
