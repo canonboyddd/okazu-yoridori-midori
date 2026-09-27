@@ -1,0 +1,94 @@
+name: FANZA link hotfix deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fanza-link-hotfix.yml'
+      - 'scripts/fix_fanza_affiliate_links.py'
+      - 'public/assets/affiliate-config.js'
+      - 'public/assets/affiliate-compliance.js'
+      - 'public/assets/dynamic-product.js'
+      - 'public/assets/fanza-products.js'
+      - 'public/_headers'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  deployments: write
+
+concurrency:
+  group: cloudflare-pages-fanza-link-hotfix
+  cancel-in-progress: true
+
+jobs:
+  hotfix-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Find latest successful production snapshot
+        id: snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RUN_ID="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/daily-data-deploy.yml/runs?branch=main&status=success&per_page=1" --jq '.workflow_runs[0].id // empty')"
+          if [ -z "$RUN_ID" ]; then
+            echo "No successful production snapshot found."
+            exit 1
+          fi
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "Using production snapshot run $RUN_ID"
+
+      - name: Download production snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ steps.snapshot.outputs.run_id }}
+        run: |
+          mkdir -p snapshot
+          gh run download "$RUN_ID" -n production-public -D snapshot
+
+      - name: Restore snapshot and overlay current hotfix files
+        run: |
+          mv public repo-public
+          mkdir public
+          if [ -d snapshot/public ]; then
+            cp -a snapshot/public/. public/
+          else
+            cp -a snapshot/. public/
+          fi
+
+          for rel in \
+            _headers \
+            assets/affiliate-config.js \
+            assets/affiliate-compliance.js \
+            assets/dynamic-product.js \
+            assets/fanza-products.js; do
+            if [ -f "repo-public/$rel" ]; then
+              mkdir -p "public/$(dirname "$rel")"
+              cp -f "repo-public/$rel" "public/$rel"
+            fi
+          done
+
+      - name: Repair every stale FANZA link and bust caches
+        run: python scripts/fix_fanza_affiliate_links.py
+
+      - name: Verify broken links are gone
+        run: |
+          if grep -RIl --include='*.html' --include='*.json' --include='*.js' 'af_id=okazumidori-001.*ch=link_tool' public | head -n 1 | grep -q .; then
+            echo 'Broken FANZA link_tool URL still exists after repair.'
+            grep -RIn --include='*.html' --include='*.json' --include='*.js' 'af_id=okazumidori-001.*ch=link_tool' public | head -n 20
+            exit 1
+          fi
+          echo 'Verified: stale -001/link_tool URLs are absent from deployment output.'
+
+      - name: Deploy hotfix to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy public --project-name=okazu-yoridori-midori --branch=main
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
