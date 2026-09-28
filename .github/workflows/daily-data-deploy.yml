@@ -19,6 +19,7 @@ on:
       - 'scripts/build_large_taxonomy_directory.py'
       - 'scripts/rebuild_actress_directory_balanced.py'
       - 'scripts/build_full_catalog_upgrade.py'
+      - 'scripts/enrich_fanza_product_comments.py'
       - 'scripts/build_dmm_popular_actresses.py'
 
 permissions:
@@ -75,6 +76,12 @@ jobs:
           DMM_FULL_CATALOG_MAX_PAGES: "0"
           MAX_INDEXABLE_FILES: "18000"
         run: python scripts/build_full_catalog_upgrade.py
+
+      - name: Enrich full catalog with FANZA product descriptions
+        env:
+          DMM_API_ID: ${{ secrets.DMM_API_ID }}
+          DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
+        run: python scripts/enrich_fanza_product_comments.py
 
       - name: Build DMM popularity-first actress ranking and 50-on data
         env:
