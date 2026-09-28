@@ -79,6 +79,45 @@ def test_alias_pages() -> None:
     print(f"QA aliases: {len(groups)} resolved groups; sample={canonical}")
 
 
+def test_genre_catalog() -> None:
+    status, raw = fetch(BASE + "/data/genre-catalog-index.json")
+    assert_true(status == 200, "Full genre catalog index missing")
+    data = json.loads(raw)
+    catalog_count = int(data.get("catalogCount") or 0)
+    genres = data.get("genres") or []
+    assert_true(catalog_count >= 40000, f"Full catalog unexpectedly small for genre aggregation: {catalog_count}")
+    assert_true(bool(genres), "No full-catalog genre groups generated")
+
+    sample = None
+    sample_page = ""
+    for row in sorted(genres, key=lambda x: int(x.get("count") or 0), reverse=True)[:30]:
+        gid = str(row.get("id") or "")
+        if not gid or int(row.get("count") or 0) <= 30:
+            continue
+        try:
+            page_status, page = fetch(BASE + f"/ranking/genre/{gid}/", retries=1)
+        except RuntimeError:
+            continue
+        if page_status == 200:
+            sample = row
+            sample_page = page
+            break
+    assert_true(sample is not None, "Could not find a live genre page backed by the full catalog")
+
+    file_url = str(sample.get("file") or "")
+    if file_url.startswith("/"):
+        file_url = BASE + file_url
+    status, genre_raw = fetch(file_url)
+    assert_true(status == 200, "Full genre product JSON missing")
+    genre_data = json.loads(genre_raw)
+    items = genre_data.get("items") or []
+    expected = int(sample.get("count") or 0)
+    assert_true(len(items) == expected, f"Genre count mismatch: index={expected}, file={len(items)}")
+    assert_true(len(items) > 30, "Genre page is still limited to the old 30-product API sample")
+    assert_true("v6.js?v=20260928-1317" in sample_page, "Genre full-catalog loader cache-bust missing")
+    print(f"QA genres: catalog={catalog_count}; sample={sample.get('name')} full_count={len(items)}")
+
+
 def catalog_rows(limit_shards: int = 4) -> list[dict]:
     _, manifest_raw = fetch(BASE + "/data/full-catalog-manifest.json")
     manifest = json.loads(manifest_raw)
@@ -98,7 +137,6 @@ def catalog_rows(limit_shards: int = 4) -> list[dict]:
 
 def find_live_product() -> tuple[str, str, str]:
     rows = catalog_rows()
-    # Prefer a product with a real FANZA description so the static description block can be verified.
     ranked = sorted(rows, key=lambda x: (1 if str(x.get("comment") or "").strip() else 0, int(x.get("reviewCount") or 0)), reverse=True)
     for row in ranked[:500]:
         api_link = str(row.get("affiliateURL") or "")
@@ -129,7 +167,6 @@ def test_product_page() -> tuple[str, str]:
     assert_true("関連作品" in page or "おすすめ" in page, f"Related product sections missing on {cid}")
     assert_true("FANZA作品情報" in page, f"Product SEO title missing on {cid}")
     assert_true("product-page-v2.css" in page, f"Product V2 stylesheet missing on {cid}")
-    # Real FANZA comments are preferred when available; generic runtime fallback covers products without comments.
     if "PRODUCT_DESCRIPTION_START" in page:
         assert_true("作品紹介" in page, f"FANZA product description block missing on {cid}")
     print(f"QA product page: {cid} UX/SEO/related works OK")
@@ -157,6 +194,7 @@ def test_fanza_link(cid: str, link: str) -> None:
 def main() -> None:
     test_fc2()
     test_alias_pages()
+    test_genre_catalog()
     cid, link = test_product_page()
     test_fanza_link(cid, link)
     print("Production QA passed")
