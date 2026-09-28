@@ -12,6 +12,7 @@ DESKTOP_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrom
 MOBILE_UA = "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 Chrome/154 Mobile Safari/537.36"
 INVALID_FANZA_MARKERS = ["リンクは機能していません", "この広告リンクは無効", "広告リンクは無効"]
 FACET_ASSET_VERSION = "20260928-2348"
+V6_ASSET_VERSION = "20260929-0825"
 
 
 def fetch(url: str, user_agent: str = DESKTOP_UA, retries: int = 6) -> tuple[int, str]:
@@ -113,14 +114,32 @@ def test_full_entity_catalog(entity_type: str) -> dict:
     status, entity_raw = fetch(file_url)
     assert_true(status == 200, f"Full {entity_type} product JSON missing")
     entity_data = json.loads(entity_raw)
-    items = entity_data.get("items") or []
+    items = list(entity_data.get("items") or [])
+    entity_shards = entity_data.get("shards") or []
+    if not items and entity_shards:
+        summed = 0
+        for shard in entity_shards:
+            shard_url = str(shard.get("file") or "")
+            if shard_url.startswith("/"):
+                shard_url = BASE + shard_url
+            shard_status, shard_raw = fetch(shard_url)
+            assert_true(shard_status == 200, f"Entity shard missing: {shard_url}")
+            shard_data = json.loads(shard_raw)
+            shard_items = shard_data.get("items") or []
+            expected_shard_count = int(shard.get("count") or 0)
+            assert_true(len(shard_items) == expected_shard_count, f"Entity shard count mismatch: {len(shard_items)}/{expected_shard_count}")
+            assert_true(int(shard.get("bytes") or 0) < 24 * 1024 * 1024, f"Entity shard too large: {shard.get('bytes')}")
+            items.extend(shard_items)
+            summed += expected_shard_count
+        assert_true(summed == int(entity_data.get("count") or 0), f"Entity shard manifest mismatch: {summed}/{entity_data.get('count')}")
+
     expected = int(sample.get("count") or 0)
-    assert_true(len(items) == expected, f"{label} count mismatch: index={expected}, file={len(items)}")
+    assert_true(len(items) == expected, f"{label} count mismatch: index={expected}, file/shards={len(items)}")
     assert_true(len(items) > 30, f"{label} page is still limited to the old 30-product API sample")
-    assert_true(f"v6.js?v={FACET_ASSET_VERSION}" in sample_page, f"{label} full-catalog loader cache-bust missing")
+    assert_true(f"v6.js?v={V6_ASSET_VERSION}" in sample_page, f"{label} full-catalog loader cache-bust missing")
     if entity_type == "actress" and sample.get("aliases"):
         assert_true(isinstance(entity_data.get("aliases"), list), "Actress alias metadata missing from full catalog")
-    print(f"QA {entity_type}s: catalog={catalog_count}; sample={sample.get('name')} full_count={len(items)}")
+    print(f"QA {entity_type}s: catalog={catalog_count}; sample={sample.get('name')} full_count={len(items)} shards={len(entity_shards)}")
     return sample
 
 
@@ -198,9 +217,9 @@ def test_catalog_audit() -> None:
 
 
 def test_catalog_ui_asset() -> None:
-    status, script = fetch(BASE + f"/assets/v6.js?v={FACET_ASSET_VERSION}")
+    status, script = fetch(BASE + f"/assets/v6.js?v={V6_ASSET_VERSION}")
     assert_true(status == 200, "Facet UI asset missing")
-    for marker in ["新着順", "人気順", "評価順", "価格順", "セール順", "女優名で絞り込み", "すべてのメーカー", "すべてのジャンル", "セール作品のみ", "actress"]:
+    for marker in ["新着順", "人気順", "評価順", "価格順", "セール順", "女優名で絞り込み", "すべてのメーカー", "すべてのジャンル", "セール作品のみ", "actress", "data.shards"]:
         assert_true(marker in script, f"Catalog filter UI missing: {marker}")
     assert_true("${entityType}-catalog" in script, "Generic genre/maker/actress full-catalog loader missing")
     print("QA catalog UI: genre/maker/actress sort and filter controls OK")
