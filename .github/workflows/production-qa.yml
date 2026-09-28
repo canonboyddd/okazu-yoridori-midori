@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
   workflow_run:
     workflows:
+      - "Daily FANZA data refresh"
       - "Fast Cloudflare Pages deploy"
       - "Actress alias merge deploy"
     types: [completed]
@@ -19,25 +20,25 @@ jobs:
   qa:
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Wait for Cloudflare propagation
-        run: sleep 30
+        run: sleep 45
 
       - name: Run production QA with propagation retries
         run: |
-          for attempt in 1 2 3; do
-            echo "Production QA attempt ${attempt}/3"
+          for attempt in 1 2 3 4; do
+            echo "Production QA attempt ${attempt}/4"
             if python scripts/qa_production.py; then
               exit 0
             fi
-            if [ "$attempt" -lt 3 ]; then
-              echo "Production may still be propagating; waiting 30 seconds before retry."
-              sleep 30
+            if [ "$attempt" -lt 4 ]; then
+              echo "Production may still be propagating; waiting 45 seconds before retry."
+              sleep 45
             fi
           done
-          echo "Production QA failed after 3 attempts."
+          echo "Production QA failed after 4 attempts."
           exit 1
