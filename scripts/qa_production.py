@@ -144,15 +144,30 @@ def test_catalog_search() -> None:
     assert_true(status == 200, "Advanced catalog search index missing")
     data = json.loads(raw)
     count = int(data.get("count") or 0)
-    items = data.get("items") or []
-    assert_true(count >= 40000 and len(items) == count, f"Advanced search index incomplete: {count}/{len(items)}")
+    shards = data.get("shards") or []
+    assert_true(count >= 40000, f"Advanced search manifest count too small: {count}")
+    assert_true(len(shards) >= 2, "Advanced search index is not sharded")
+    summed = sum(int(x.get("count") or 0) for x in shards if isinstance(x, dict))
+    assert_true(summed == count, f"Advanced search shard counts do not total catalog: {summed}/{count}")
+    max_bytes = max(int(x.get("bytes") or 0) for x in shards if isinstance(x, dict))
+    assert_true(max_bytes < 24 * 1024 * 1024, f"Search shard exceeds safe Cloudflare size: {max_bytes}")
+
+    first_file = str(shards[0].get("file") or "")
+    if first_file.startswith("/"):
+        first_file = BASE + first_file
+    status, first_raw = fetch(first_file)
+    assert_true(status == 200, "First advanced-search shard missing")
+    first_data = json.loads(first_raw)
+    first_items = first_data.get("items") or []
+    assert_true(len(first_items) == int(shards[0].get("count") or 0), "First search shard item count mismatch")
+
     status, page = fetch(BASE + "/search/")
     assert_true(status == 200 and "catalogAdvancedSearch" in page, "Advanced search page missing")
     assert_true(f"catalog-search.js?v={FACET_ASSET_VERSION}" in page, "Advanced search asset version missing")
     status, script = fetch(BASE + f"/assets/catalog-search.js?v={FACET_ASSET_VERSION}")
-    for marker in ["女優", "ジャンル", "メーカー", "セール作品のみ", "最低評価", "価格が安い順", "catalog_search"]:
-        assert_true(marker in script, f"Advanced search control missing: {marker}")
-    print(f"QA advanced search: {count} products searchable")
+    for marker in ["女優", "ジャンル", "メーカー", "セール作品のみ", "最低評価", "価格が安い順", "catalog_search", "data.shards", "fetchShard"]:
+        assert_true(marker in script, f"Advanced search control/shard loader missing: {marker}")
+    print(f"QA advanced search: {count} products across {len(shards)} Cloudflare-safe shards")
 
 
 def test_catalog_audit() -> None:
