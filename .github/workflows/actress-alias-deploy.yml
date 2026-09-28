@@ -56,6 +56,7 @@ jobs:
             assets/affiliate-compliance.js \
             assets/dynamic-product.js \
             assets/fanza-products.js \
+            assets/v6.js \
             assets/fc2-adult.css \
             fc2-adult/index.html; do
             if [ -f "repo-public/$rel" ]; then
