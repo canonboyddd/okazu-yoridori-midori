@@ -11,7 +11,7 @@ BASE = "https://okazu-yoridori-midori.pages.dev"
 DESKTOP_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/154 Safari/537.36"
 MOBILE_UA = "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 Chrome/154 Mobile Safari/537.36"
 INVALID_FANZA_MARKERS = ["リンクは機能していません", "この広告リンクは無効", "広告リンクは無効"]
-FACET_ASSET_VERSION = "20260928-1905"
+FACET_ASSET_VERSION = "20260928-2348"
 
 
 def fetch(url: str, user_agent: str = DESKTOP_UA, retries: int = 6) -> tuple[int, str]:
@@ -80,9 +80,9 @@ def test_alias_pages() -> None:
     print(f"QA aliases: {len(groups)} resolved groups; sample={canonical}")
 
 
-def test_full_entity_catalog(entity_type: str) -> tuple[int, int, str, int]:
-    key = "genres" if entity_type == "genre" else "makers"
-    label = "Genre" if entity_type == "genre" else "Maker"
+def test_full_entity_catalog(entity_type: str) -> dict:
+    key = {"genre": "genres", "maker": "makers", "actress": "actresses"}[entity_type]
+    label = {"genre": "Genre", "maker": "Maker", "actress": "Actress"}[entity_type]
     status, raw = fetch(BASE + f"/data/{entity_type}-catalog-index.json")
     assert_true(status == 200, f"Full {entity_type} catalog index missing")
     data = json.loads(raw)
@@ -93,7 +93,7 @@ def test_full_entity_catalog(entity_type: str) -> tuple[int, int, str, int]:
 
     sample = None
     sample_page = ""
-    for row in sorted(rows, key=lambda x: int(x.get("count") or 0), reverse=True)[:40]:
+    for row in sorted(rows, key=lambda x: int(x.get("count") or 0), reverse=True)[:80]:
         entity_id = str(row.get("id") or "")
         if not entity_id or int(row.get("count") or 0) <= 30:
             continue
@@ -118,8 +118,41 @@ def test_full_entity_catalog(entity_type: str) -> tuple[int, int, str, int]:
     assert_true(len(items) == expected, f"{label} count mismatch: index={expected}, file={len(items)}")
     assert_true(len(items) > 30, f"{label} page is still limited to the old 30-product API sample")
     assert_true(f"v6.js?v={FACET_ASSET_VERSION}" in sample_page, f"{label} full-catalog loader cache-bust missing")
+    if entity_type == "actress" and sample.get("aliases"):
+        assert_true(isinstance(entity_data.get("aliases"), list), "Actress alias metadata missing from full catalog")
     print(f"QA {entity_type}s: catalog={catalog_count}; sample={sample.get('name')} full_count={len(items)}")
-    return catalog_count, len(rows), str(sample.get("name") or ""), len(items)
+    return sample
+
+
+def test_seo_pagination(entity_type: str, sample: dict) -> None:
+    count = int(sample.get("count") or 0)
+    if count <= 60:
+        print(f"QA {entity_type} SEO pagination: sample has <=60 works; page 2 not required")
+        return
+    entity_id = str(sample.get("id") or "")
+    status, page2 = fetch(BASE + f"/ranking/{entity_type}/{entity_id}/page/2/")
+    assert_true(status == 200, f"SEO page 2 missing for {entity_type} {entity_id}")
+    assert_true("rel=\"canonical\"" in page2 and "rel=\"prev\"" in page2, f"SEO canonical/prev missing for {entity_type} page 2")
+    assert_true("2ページ目" in page2 and "fc-grid" in page2, f"SEO page 2 content missing for {entity_type}")
+    status, base = fetch(BASE + f"/ranking/{entity_type}/{entity_id}/")
+    assert_true("FULL_PAGINATION_HEAD_START" in base and "/page/2/" in base, f"Base {entity_type} page does not link to SEO page 2")
+    print(f"QA {entity_type} SEO pagination: page 2 live for {sample.get('name')}")
+
+
+def test_catalog_search() -> None:
+    status, raw = fetch(BASE + "/data/catalog-search-index.json")
+    assert_true(status == 200, "Advanced catalog search index missing")
+    data = json.loads(raw)
+    count = int(data.get("count") or 0)
+    items = data.get("items") or []
+    assert_true(count >= 40000 and len(items) == count, f"Advanced search index incomplete: {count}/{len(items)}")
+    status, page = fetch(BASE + "/search/")
+    assert_true(status == 200 and "catalogAdvancedSearch" in page, "Advanced search page missing")
+    assert_true(f"catalog-search.js?v={FACET_ASSET_VERSION}" in page, "Advanced search asset version missing")
+    status, script = fetch(BASE + f"/assets/catalog-search.js?v={FACET_ASSET_VERSION}")
+    for marker in ["女優", "ジャンル", "メーカー", "セール作品のみ", "最低評価", "価格が安い順", "catalog_search"]:
+        assert_true(marker in script, f"Advanced search control missing: {marker}")
+    print(f"QA advanced search: {count} products searchable")
 
 
 def test_catalog_audit() -> None:
@@ -136,22 +169,34 @@ def test_catalog_audit() -> None:
     assert_true(int(audit.get("sitemapMissingProductPages") or 0) == 0, f"Sitemap product pages with 404 risk: {audit.get('sitemapMissingProductPages')}")
     assert_true(bool(audit.get("dynamicProductViewExists")), "Dynamic product fallback page missing")
     assert_true(int(audit.get("lookupCoverageCount") or 0) == catalog_count, "Product lookup does not cover the whole catalog")
+    assert_true(int(audit.get("searchIndexCount") or 0) == catalog_count, "Advanced search index does not cover the whole catalog")
+    assert_true(int(audit.get("actressCatalogCount") or 0) > 0, "No full actress catalogs generated")
+    assert_true(int(audit.get("seoPaginationPages") or 0) > 0, "No SEO pagination pages generated")
     print(
         "QA catalog audit: "
-        f"catalog={catalog_count}, missingGenre={audit.get('missingGenre')}, "
-        f"missingMaker={audit.get('missingMaker')}, missingActress={audit.get('missingActress')}, "
-        f"duplicates={audit.get('duplicateProductIds')}, brokenAffiliate={audit.get('brokenAffiliateLinks')}, "
-        f"sitemap404Risk={audit.get('sitemapMissingProductPages')}"
+        f"catalog={catalog_count}, fullyClassified={audit.get('fullyClassifiedCount')}, "
+        f"missingGenre={audit.get('missingGenre')}, missingMaker={audit.get('missingMaker')}, "
+        f"missingActress={audit.get('missingActress')}, actressCatalogs={audit.get('actressCatalogCount')}, "
+        f"seoPages={audit.get('seoPaginationPages')}, duplicates={audit.get('duplicateProductIds')}, "
+        f"brokenAffiliate={audit.get('brokenAffiliateLinks')}, sitemap404Risk={audit.get('sitemapMissingProductPages')}"
     )
 
 
 def test_catalog_ui_asset() -> None:
     status, script = fetch(BASE + f"/assets/v6.js?v={FACET_ASSET_VERSION}")
     assert_true(status == 200, "Facet UI asset missing")
-    for marker in ["新着順", "人気順", "評価順", "価格順", "セール順", "女優名で絞り込み", "すべてのメーカー", "セール作品のみ"]:
+    for marker in ["新着順", "人気順", "評価順", "価格順", "セール順", "女優名で絞り込み", "すべてのメーカー", "すべてのジャンル", "セール作品のみ", "actress"]:
         assert_true(marker in script, f"Catalog filter UI missing: {marker}")
-    assert_true("maker-catalog" in script and "genre-catalog" not in script or "${entityType}-catalog" in script, "Generic genre/maker full-catalog loader missing")
-    print("QA catalog UI: sort/filter controls for genre and maker full catalogs OK")
+    assert_true("${entityType}-catalog" in script, "Generic genre/maker/actress full-catalog loader missing")
+    print("QA catalog UI: genre/maker/actress sort and filter controls OK")
+
+
+def test_analytics_asset() -> None:
+    status, script = fetch(BASE + f"/assets/ga4.js?v={FACET_ASSET_VERSION}")
+    assert_true(status == 200, "Analytics asset missing")
+    for marker in ["/api/ops-collect", "affiliate_click", "cta_position", "product_id", "actress", "genre", "maker", "device_type"]:
+        assert_true(marker in script, f"Detailed analytics marker missing: {marker}")
+    print("QA analytics: affiliate dimensions prepared for existing central dashboard")
 
 
 def catalog_rows(limit_shards: int = 4) -> list[dict]:
@@ -230,10 +275,16 @@ def test_fanza_link(cid: str, link: str) -> None:
 def main() -> None:
     test_fc2()
     test_alias_pages()
-    test_full_entity_catalog("genre")
-    test_full_entity_catalog("maker")
+    genre_sample = test_full_entity_catalog("genre")
+    maker_sample = test_full_entity_catalog("maker")
+    actress_sample = test_full_entity_catalog("actress")
+    test_seo_pagination("genre", genre_sample)
+    test_seo_pagination("maker", maker_sample)
+    test_seo_pagination("actress", actress_sample)
+    test_catalog_search()
     test_catalog_audit()
     test_catalog_ui_asset()
+    test_analytics_asset()
     cid, link = test_product_page()
     test_fanza_link(cid, link)
     print("Production QA passed")
