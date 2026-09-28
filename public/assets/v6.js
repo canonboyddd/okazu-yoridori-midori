@@ -20,13 +20,18 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.affiliate-slot').forEach(el => el.style.display = 'block');
   }
 
-  const genreMatch = location.pathname.match(/^\/ranking\/genre\/([^/]+)\/?$/);
-  if (genreMatch) loadFullGenreCatalog(genreMatch[1]);
+  const entityMatch = location.pathname.match(/^\/ranking\/(genre|maker)\/([^/]+)\/?$/);
+  if (entityMatch) loadFullEntityCatalog(entityMatch[1], entityMatch[2]);
 
   function esc(value) {
     return String(value == null ? '' : value).replace(/[&<>"']/g, ch => ({
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     })[ch]);
+  }
+
+  function numberValue(value) {
+    const digits = String(value == null ? '' : value).replace(/[^0-9]/g, '');
+    return digits ? Number(digits) : Number.MAX_SAFE_INTEGER;
   }
 
   function productCard(item) {
@@ -48,12 +53,28 @@ document.addEventListener('DOMContentLoaded', () => {
     </a>`;
   }
 
-  async function loadFullGenreCatalog(genreId) {
+  function sortItems(items, mode) {
+    const out = [...items];
+    if (mode === 'popular') {
+      out.sort((a, b) => Number(b.reviewCount || 0) - Number(a.reviewCount || 0) || Number(b.reviewAverage || 0) - Number(a.reviewAverage || 0));
+    } else if (mode === 'rating') {
+      out.sort((a, b) => Number(b.reviewAverage || 0) - Number(a.reviewAverage || 0) || Number(b.reviewCount || 0) - Number(a.reviewCount || 0));
+    } else if (mode === 'price') {
+      out.sort((a, b) => numberValue(a.priceValue ?? a.price) - numberValue(b.priceValue ?? b.price));
+    } else if (mode === 'sale') {
+      out.sort((a, b) => Number(b.discountRate || 0) - Number(a.discountRate || 0) || String(b.date || '').localeCompare(String(a.date || '')));
+    } else {
+      out.sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')) || Number(b.reviewCount || 0) - Number(a.reviewCount || 0));
+    }
+    return out;
+  }
+
+  async function loadFullEntityCatalog(entityType, entityId) {
     const existingGrid = document.querySelector('.entity-product-grid');
-    if (!existingGrid || document.querySelector('[data-full-genre-catalog="1"]')) return;
+    if (!existingGrid || document.querySelector('[data-full-entity-catalog="1"]')) return;
 
     try {
-      const res = await fetch(`/data/genre-catalog/${encodeURIComponent(genreId)}.json?v=20260928-1317`, {cache: 'no-cache'});
+      const res = await fetch(`/data/${entityType}-catalog/${encodeURIComponent(entityId)}.json?v=20260928-1905`, {cache: 'no-cache'});
       if (!res.ok) return;
       const data = await res.json();
       const items = Array.isArray(data.items) ? data.items : [];
@@ -61,19 +82,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const PAGE_SIZE = 60;
       let page = 1;
-      const pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+      let filtered = [...items];
 
+      const isGenre = entityType === 'genre';
+      const label = isGenre ? 'ジャンル' : 'メーカー';
       const section = document.createElement('section');
-      section.dataset.fullGenreCatalog = '1';
+      section.dataset.fullEntityCatalog = '1';
       section.className = 'genre-full-catalog';
+
+      const makerOptions = isGenre
+        ? [...new Set(items.map(x => String(x.maker || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ja'))
+        : [];
+
       section.innerHTML = `
         <div class="genre-full-head">
-          <div><span class="update-badge">全カタログ集計</span><h2>${esc(data.name || 'このジャンル')}の全作品</h2></div>
-          <strong>${items.length.toLocaleString()}作品</strong>
+          <div><span class="update-badge">全カタログ集計</span><h2>${esc(data.name || `この${label}`)} 全${items.length.toLocaleString()}作品</h2></div>
+          <strong data-result-count>${items.length.toLocaleString()}作品</strong>
         </div>
-        <p class="genre-full-copy">約5万作品の取得済みFANZAカタログ全体から、このジャンルに該当する作品を新着順で表示しています。</p>
+        <p class="genre-full-copy">取得済みFANZAカタログ全体から、この${label}に該当する作品を表示しています。</p>
+        <div class="catalog-controls">
+          <label>並び順
+            <select data-sort>
+              <option value="new">新着順</option>
+              <option value="popular">人気順</option>
+              <option value="rating">評価順</option>
+              <option value="price">価格順</option>
+              <option value="sale">セール順</option>
+            </select>
+          </label>
+          ${isGenre ? `<label>女優名<input type="search" data-actress placeholder="女優名で絞り込み"></label>` : ''}
+          ${isGenre ? `<label>メーカー<select data-maker><option value="">すべてのメーカー</option>${makerOptions.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join('')}</select></label>` : ''}
+          <label class="catalog-sale-only"><input type="checkbox" data-sale-only> セール作品のみ</label>
+        </div>
         <div class="entity-product-grid genre-full-grid"></div>
-        <nav class="genre-pagination" aria-label="ジャンル作品ページ送り">
+        <div class="catalog-empty" data-empty hidden>条件に一致する作品がありません。</div>
+        <nav class="genre-pagination" aria-label="${label}作品ページ送り">
           <button type="button" data-prev>← 前へ</button>
           <span data-page></span>
           <button type="button" data-next>次へ →</button>
@@ -84,28 +127,64 @@ document.addEventListener('DOMContentLoaded', () => {
       const pageLabel = section.querySelector('[data-page]');
       const prev = section.querySelector('[data-prev]');
       const next = section.querySelector('[data-next]');
+      const resultCount = section.querySelector('[data-result-count]');
+      const sort = section.querySelector('[data-sort]');
+      const actress = section.querySelector('[data-actress]');
+      const maker = section.querySelector('[data-maker]');
+      const saleOnly = section.querySelector('[data-sale-only]');
+      const emptyBox = section.querySelector('[data-empty]');
 
-      const style = document.createElement('style');
-      style.textContent = `
-        .genre-full-catalog{margin-top:38px;padding-top:30px;border-top:1px solid #e5e7eb}
-        .genre-full-head{display:flex;align-items:end;justify-content:space-between;gap:18px;margin-bottom:8px}
-        .genre-full-head h2{margin:7px 0 0}
-        .genre-full-head>strong{font-size:1.15rem;white-space:nowrap}
-        .genre-full-copy{margin:0 0 20px;color:#64748b;line-height:1.7}
-        .genre-pagination{display:flex;align-items:center;justify-content:center;gap:14px;margin:26px 0 8px}
-        .genre-pagination button{border:1px solid #d7dce4;border-radius:999px;background:#fff;padding:10px 16px;font-weight:800;cursor:pointer}
-        .genre-pagination button:disabled{opacity:.35;cursor:not-allowed}
-        .genre-pagination span{min-width:110px;text-align:center;font-weight:800;color:#334155}
-        @media(max-width:620px){.genre-full-head{align-items:flex-start;flex-direction:column}.genre-pagination{gap:8px}.genre-pagination button{padding:9px 12px}}
-      `;
-      document.head.appendChild(style);
+      if (!document.querySelector('style[data-full-catalog-style]')) {
+        const style = document.createElement('style');
+        style.dataset.fullCatalogStyle = '1';
+        style.textContent = `
+          .genre-full-catalog{margin-top:38px;padding-top:30px;border-top:1px solid #e5e7eb}
+          .genre-full-head{display:flex;align-items:end;justify-content:space-between;gap:18px;margin-bottom:8px}
+          .genre-full-head h2{margin:7px 0 0}
+          .genre-full-head>strong{font-size:1.15rem;white-space:nowrap}
+          .genre-full-copy{margin:0 0 18px;color:#64748b;line-height:1.7}
+          .catalog-controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 20px;padding:14px;border:1px solid #e5e7eb;border-radius:14px;background:#f8fafc}
+          .catalog-controls label{display:flex;flex-direction:column;gap:6px;font-size:.82rem;font-weight:800;color:#475569}
+          .catalog-controls select,.catalog-controls input[type="search"]{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:10px;background:#fff;padding:10px 11px;font:inherit;color:#0f172a}
+          .catalog-controls .catalog-sale-only{flex-direction:row;align-items:center;align-self:end;min-height:41px}
+          .genre-pagination{display:flex;align-items:center;justify-content:center;gap:14px;margin:26px 0 8px}
+          .genre-pagination button{border:1px solid #d7dce4;border-radius:999px;background:#fff;padding:10px 16px;font-weight:800;cursor:pointer}
+          .genre-pagination button:disabled{opacity:.35;cursor:not-allowed}
+          .genre-pagination span{min-width:110px;text-align:center;font-weight:800;color:#334155}
+          .catalog-empty{padding:28px;text-align:center;color:#64748b;border:1px dashed #cbd5e1;border-radius:14px}
+          @media(max-width:900px){.catalog-controls{grid-template-columns:repeat(2,minmax(0,1fr))}}
+          @media(max-width:620px){.genre-full-head{align-items:flex-start;flex-direction:column}.catalog-controls{grid-template-columns:1fr}.genre-pagination{gap:8px}.genre-pagination button{padding:9px 12px}}
+        `;
+        document.head.appendChild(style);
+      }
+
+      function applyFilters() {
+        const actressNeedle = actress ? actress.value.trim().toLowerCase() : '';
+        const makerNeedle = maker ? maker.value : '';
+        filtered = items.filter(item => {
+          if (saleOnly && saleOnly.checked && Number(item.discountRate || 0) <= 0) return false;
+          if (makerNeedle && String(item.maker || '') !== makerNeedle) return false;
+          if (actressNeedle) {
+            const hay = (Array.isArray(item.actresses) ? item.actresses : []).join(' ').toLowerCase();
+            if (!hay.includes(actressNeedle)) return false;
+          }
+          return true;
+        });
+        filtered = sortItems(filtered, sort ? sort.value : 'new');
+        page = 1;
+        render(false);
+      }
 
       function render(scrollToTop) {
+        const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+        if (page > pages) page = pages;
         const start = (page - 1) * PAGE_SIZE;
-        grid.innerHTML = items.slice(start, start + PAGE_SIZE).map(productCard).join('');
-        pageLabel.textContent = `${page} / ${pages}`;
-        prev.disabled = page <= 1;
-        next.disabled = page >= pages;
+        grid.innerHTML = filtered.slice(start, start + PAGE_SIZE).map(productCard).join('');
+        resultCount.textContent = `${filtered.length.toLocaleString()}作品`;
+        pageLabel.textContent = filtered.length ? `${page} / ${pages}` : '0 / 0';
+        prev.disabled = page <= 1 || !filtered.length;
+        next.disabled = page >= pages || !filtered.length;
+        emptyBox.hidden = filtered.length > 0;
         if (scrollToTop) section.scrollIntoView({behavior: 'smooth', block: 'start'});
       }
 
@@ -113,8 +192,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (page > 1) { page--; render(true); }
       });
       next.addEventListener('click', () => {
+        const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
         if (page < pages) { page++; render(true); }
       });
+      sort.addEventListener('change', applyFilters);
+      if (actress) actress.addEventListener('input', applyFilters);
+      if (maker) maker.addEventListener('change', applyFilters);
+      saleOnly.addEventListener('change', applyFilters);
 
       const summary = document.querySelector('.entity-summary');
       if (summary && !summary.querySelector('[data-full-count]')) {
@@ -125,9 +209,9 @@ document.addEventListener('DOMContentLoaded', () => {
         summary.appendChild(chip);
       }
 
-      render(false);
+      applyFilters();
     } catch (err) {
-      console.warn('Full genre catalog load failed', err);
+      console.warn(`Full ${entityType} catalog load failed`, err);
     }
   }
 });
