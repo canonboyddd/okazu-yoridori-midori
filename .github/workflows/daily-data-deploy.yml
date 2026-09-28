@@ -11,6 +11,7 @@ on:
       - '.github/workflows/daily-data-deploy.yml'
       - '.github/workflows/helpers/patch_full_catalog_comments.py'
       - '.github/workflows/helpers/enhance_product_descriptions.py'
+      - '.github/workflows/helpers/shard_large_entity_catalogs.py'
       - 'config/actress_aliases.json'
       - 'scripts/validate_actress_alias_db.py'
       - 'scripts/merge_actress_aliases.py'
@@ -145,6 +146,9 @@ jobs:
 
       - name: Build instant product lookup
         run: python .github/workflows/helpers/build_catalog_lookup_index.py
+
+      - name: Shard oversized entity catalogs for Cloudflare Pages
+        run: python .github/workflows/helpers/shard_large_entity_catalogs.py
 
       - name: Verify production build before deploy
         run: |
