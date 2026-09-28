@@ -20,8 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.affiliate-slot').forEach(el => el.style.display = 'block');
   }
 
-  const entityMatch = location.pathname.match(/^\/ranking\/(genre|maker)\/([^/]+)\/?$/);
-  if (entityMatch) loadFullEntityCatalog(entityMatch[1], entityMatch[2]);
+  const entityMatch = location.pathname.match(/^\/ranking\/(genre|maker|actress)\/([^/]+)\/?$/);
+  if (entityMatch && entityMatch[2] !== 'aliases') loadFullEntityCatalog(entityMatch[1], entityMatch[2]);
 
   function esc(value) {
     return String(value == null ? '' : value).replace(/[&<>"']/g, ch => ({
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const review = item.reviewAverage ? `★ ${esc(item.reviewAverage)}${reviewCount ? ` (${reviewCount})` : ''}` : '';
     const image = item.image ? `<img src="${esc(item.image)}" alt="${esc(item.title)}" loading="lazy" decoding="async">` : '';
     const badge = discount > 0 ? `<span class="entity-discount">${discount}%OFF</span>` : '';
-    return `<a class="entity-product-card" href="/products/view/?id=${encodeURIComponent(item.id || '')}">
+    return `<a class="entity-product-card" href="/products/view/?id=${encodeURIComponent(item.id || '')}" data-product-id="${esc(item.id || '')}">
       <div class="entity-product-image">${badge}${image}</div>
       <div class="entity-product-body">
         <div class="entity-title">${esc(item.title || 'FANZA作品')}</div>
@@ -69,12 +69,16 @@ document.addEventListener('DOMContentLoaded', () => {
     return out;
   }
 
+  function uniqueSorted(values) {
+    return [...new Set(values.map(x => String(x || '').trim()).filter(Boolean))].sort((a,b) => a.localeCompare(b, 'ja'));
+  }
+
   async function loadFullEntityCatalog(entityType, entityId) {
-    const existingGrid = document.querySelector('.entity-product-grid');
+    const existingGrid = document.querySelector('.entity-product-grid, .fc-grid');
     if (!existingGrid || document.querySelector('[data-full-entity-catalog="1"]')) return;
 
     try {
-      const res = await fetch(`/data/${entityType}-catalog/${encodeURIComponent(entityId)}.json?v=20260928-1905`, {cache: 'no-cache'});
+      const res = await fetch(`/data/${entityType}-catalog/${encodeURIComponent(entityId)}.json?v=20260928-2348`, {cache: 'no-cache'});
       if (!res.ok) return;
       const data = await res.json();
       const items = Array.isArray(data.items) ? data.items : [];
@@ -84,19 +88,20 @@ document.addEventListener('DOMContentLoaded', () => {
       let page = 1;
       let filtered = [...items];
 
-      const isGenre = entityType === 'genre';
-      const label = isGenre ? 'ジャンル' : 'メーカー';
+      const label = entityType === 'genre' ? 'ジャンル' : entityType === 'maker' ? 'メーカー' : '女優';
       const section = document.createElement('section');
       section.dataset.fullEntityCatalog = '1';
+      section.dataset.entityType = entityType;
+      section.dataset.entityId = entityId;
       section.className = 'genre-full-catalog';
 
-      const makerOptions = isGenre
-        ? [...new Set(items.map(x => String(x.maker || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ja'))
-        : [];
+      const makerOptions = uniqueSorted(items.map(x => x.maker));
+      const genreOptions = uniqueSorted(items.flatMap(x => Array.isArray(x.genres) ? x.genres : []));
+      const aliasText = Array.isArray(data.aliases) && data.aliases.length ? `別名義：${data.aliases.join(' / ')}` : '';
 
       section.innerHTML = `
         <div class="genre-full-head">
-          <div><span class="update-badge">全カタログ集計</span><h2>${esc(data.name || `この${label}`)} 全${items.length.toLocaleString()}作品</h2></div>
+          <div><span class="update-badge">全カタログ集計</span><h2>${esc(data.name || `この${label}`)} 全${items.length.toLocaleString()}作品</h2>${aliasText ? `<p class="catalog-aliases">${esc(aliasText)}</p>` : ''}</div>
           <strong data-result-count>${items.length.toLocaleString()}作品</strong>
         </div>
         <p class="genre-full-copy">取得済みFANZAカタログ全体から、この${label}に該当する作品を表示しています。</p>
@@ -110,8 +115,9 @@ document.addEventListener('DOMContentLoaded', () => {
               <option value="sale">セール順</option>
             </select>
           </label>
-          ${isGenre ? `<label>女優名<input type="search" data-actress placeholder="女優名で絞り込み"></label>` : ''}
-          ${isGenre ? `<label>メーカー<select data-maker><option value="">すべてのメーカー</option>${makerOptions.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join('')}</select></label>` : ''}
+          ${entityType !== 'actress' ? `<label>女優名<input type="search" data-actress placeholder="女優名で絞り込み"></label>` : ''}
+          ${entityType !== 'maker' ? `<label>メーカー<select data-maker><option value="">すべてのメーカー</option>${makerOptions.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join('')}</select></label>` : ''}
+          ${entityType !== 'genre' ? `<label>ジャンル<select data-genre><option value="">すべてのジャンル</option>${genreOptions.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join('')}</select></label>` : ''}
           <label class="catalog-sale-only"><input type="checkbox" data-sale-only> セール作品のみ</label>
         </div>
         <div class="entity-product-grid genre-full-grid"></div>
@@ -131,6 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const sort = section.querySelector('[data-sort]');
       const actress = section.querySelector('[data-actress]');
       const maker = section.querySelector('[data-maker]');
+      const genre = section.querySelector('[data-genre]');
       const saleOnly = section.querySelector('[data-sale-only]');
       const emptyBox = section.querySelector('[data-empty]');
 
@@ -142,6 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
           .genre-full-head{display:flex;align-items:end;justify-content:space-between;gap:18px;margin-bottom:8px}
           .genre-full-head h2{margin:7px 0 0}
           .genre-full-head>strong{font-size:1.15rem;white-space:nowrap}
+          .catalog-aliases{margin:6px 0 0;color:#7c3aed;font-weight:700;font-size:.88rem}
           .genre-full-copy{margin:0 0 18px;color:#64748b;line-height:1.7}
           .catalog-controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 20px;padding:14px;border:1px solid #e5e7eb;border-radius:14px;background:#f8fafc}
           .catalog-controls label{display:flex;flex-direction:column;gap:6px;font-size:.82rem;font-weight:800;color:#475569}
@@ -158,12 +166,14 @@ document.addEventListener('DOMContentLoaded', () => {
         document.head.appendChild(style);
       }
 
-      function applyFilters() {
+      function applyFilters(track) {
         const actressNeedle = actress ? actress.value.trim().toLowerCase() : '';
         const makerNeedle = maker ? maker.value : '';
+        const genreNeedle = genre ? genre.value : '';
         filtered = items.filter(item => {
           if (saleOnly && saleOnly.checked && Number(item.discountRate || 0) <= 0) return false;
           if (makerNeedle && String(item.maker || '') !== makerNeedle) return false;
+          if (genreNeedle && !(Array.isArray(item.genres) ? item.genres : []).includes(genreNeedle)) return false;
           if (actressNeedle) {
             const hay = (Array.isArray(item.actresses) ? item.actresses : []).join(' ').toLowerCase();
             if (!hay.includes(actressNeedle)) return false;
@@ -173,6 +183,17 @@ document.addEventListener('DOMContentLoaded', () => {
         filtered = sortItems(filtered, sort ? sort.value : 'new');
         page = 1;
         render(false);
+        if (track && window.trackOpsEvent) {
+          window.trackOpsEvent('catalog_filter', {
+            page_type: entityType,
+            program: data.name || '',
+            actress: actress ? actress.value.trim() : (entityType === 'actress' ? data.name || '' : ''),
+            maker: maker ? maker.value : (entityType === 'maker' ? data.name || '' : ''),
+            genre: genre ? genre.value : (entityType === 'genre' ? data.name || '' : ''),
+            placement: `sort=${sort ? sort.value : 'new'};sale=${saleOnly && saleOnly.checked ? 1 : 0}`,
+            result_count: filtered.length,
+          });
+        }
       }
 
       function render(scrollToTop) {
@@ -195,10 +216,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
         if (page < pages) { page++; render(true); }
       });
-      sort.addEventListener('change', applyFilters);
-      if (actress) actress.addEventListener('input', applyFilters);
-      if (maker) maker.addEventListener('change', applyFilters);
-      saleOnly.addEventListener('change', applyFilters);
+      sort.addEventListener('change', () => applyFilters(true));
+      if (actress) actress.addEventListener('input', () => applyFilters(true));
+      if (maker) maker.addEventListener('change', () => applyFilters(true));
+      if (genre) genre.addEventListener('change', () => applyFilters(true));
+      saleOnly.addEventListener('change', () => applyFilters(true));
 
       const summary = document.querySelector('.entity-summary');
       if (summary && !summary.querySelector('[data-full-count]')) {
@@ -209,7 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
         summary.appendChild(chip);
       }
 
-      applyFilters();
+      applyFilters(false);
     } catch (err) {
       console.warn(`Full ${entityType} catalog load failed`, err);
     }
