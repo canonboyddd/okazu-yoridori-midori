@@ -90,6 +90,7 @@ jobs:
           python scripts/enhance_product_pages_v2.py
           python scripts/enhance_entity_seo_v2.py
           python .github/workflows/helpers/build_catalog_lookup_index.py
+          python .github/workflows/helpers/shard_large_entity_catalogs.py
 
       - name: Verify manual alias output
         run: |
