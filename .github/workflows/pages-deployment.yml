@@ -13,13 +13,13 @@ permissions:
   deployments: write
 
 concurrency:
-  group: cloudflare-pages-production
+  group: fast-cloudflare-pages-deploy
   cancel-in-progress: false
 
 jobs:
   fast-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 90
     name: Fast deploy without FANZA rebuild
     steps:
       - name: Checkout
@@ -27,14 +27,44 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Decide whether full rebuild owns this change
+        id: mode
+        run: |
+          git diff --name-only HEAD^ HEAD > /tmp/current-change.txt || true
+          cat /tmp/current-change.txt
+          if grep -Eq '^(config/actress_aliases\.json|scripts/(validate_actress_alias_db|merge_actress_aliases|enhance_actress_alias_pages|enhance_product_pages_v2|enhance_entity_seo_v2|build_fanza_api|build_large_taxonomy_directory|rebuild_actress_directory_balanced|build_full_catalog_upgrade|enrich_fanza_product_comments|build_dmm_popular_actresses)\.py|\.github/workflows/helpers/(patch_full_catalog_comments|enhance_product_descriptions)\.py)$' /tmp/current-change.txt; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "A full FANZA refresh owns this change; fast deploy will not race it."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Wait for Daily FANZA refresh to finish
+        if: steps.mode.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for attempt in $(seq 1 100); do
+            ACTIVE="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/daily-data-deploy.yml/runs?branch=main&per_page=20" --jq '[.workflow_runs[] | select(.status == "in_progress" or .status == "queued" or .status == "pending")] | length')"
+            if [ "$ACTIVE" = "0" ]; then
+              echo "No active Daily FANZA refresh."
+              exit 0
+            fi
+            echo "Daily FANZA refresh is active; waiting 30 seconds (${attempt}/100)."
+            sleep 30
+          done
+          echo "Timed out waiting for Daily FANZA refresh."
+          exit 1
+
       - name: Find latest production snapshot
+        if: steps.mode.outputs.skip != 'true'
         id: snapshot
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           RUN_ID="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/daily-data-deploy.yml/runs?branch=main&status=success&per_page=1" --jq '.workflow_runs[0].id // empty')"
           if [ -z "$RUN_ID" ]; then
-            echo "No successful daily production snapshot exists yet. Wait for the initial full refresh to finish."
+            echo "No successful daily production snapshot exists yet."
             exit 1
           fi
           SNAPSHOT_SHA="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}" --jq '.head_sha')"
@@ -42,18 +72,20 @@ jobs:
           echo "sha=$SNAPSHOT_SHA" >> "$GITHUB_OUTPUT"
           echo "Using production snapshot from run $RUN_ID at $SNAPSHOT_SHA"
 
-      - name: Guard against unapplied heavy generator changes
+      - name: Guard against unapplied full-data changes
+        if: steps.mode.outputs.skip != 'true'
         env:
           SNAPSHOT_SHA: ${{ steps.snapshot.outputs.sha }}
         run: |
           git diff --name-only "$SNAPSHOT_SHA" "$GITHUB_SHA" > /tmp/since-snapshot.txt
           cat /tmp/since-snapshot.txt
-          if grep -Eq '^scripts/(build_fanza_api|build_large_taxonomy_directory|rebuild_actress_directory_balanced|build_full_catalog_upgrade|build_dmm_popular_actresses)\.py$' /tmp/since-snapshot.txt; then
-            echo "Heavy FANZA generator changes exist after the latest production snapshot. The full data workflow must finish first."
+          if grep -Eq '^(config/actress_aliases\.json|scripts/(validate_actress_alias_db|merge_actress_aliases|enhance_actress_alias_pages|enhance_product_pages_v2|enhance_entity_seo_v2|build_fanza_api|build_large_taxonomy_directory|rebuild_actress_directory_balanced|build_full_catalog_upgrade|enrich_fanza_product_comments|build_dmm_popular_actresses)\.py|\.github/workflows/helpers/(patch_full_catalog_comments|enhance_product_descriptions)\.py)$' /tmp/since-snapshot.txt; then
+            echo "Full-data changes exist after the latest production snapshot. Waiting for the next Daily FANZA snapshot is required."
             exit 1
           fi
 
       - name: Download latest production snapshot
+        if: steps.mode.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_ID: ${{ steps.snapshot.outputs.run_id }}
@@ -63,6 +95,7 @@ jobs:
           gh run download "$RUN_ID" -n production-public -D snapshot
 
       - name: Restore snapshot and overlay repository public changes
+        if: steps.mode.outputs.skip != 'true'
         env:
           SNAPSHOT_SHA: ${{ steps.snapshot.outputs.sha }}
         run: |
@@ -90,9 +123,11 @@ jobs:
           done < /tmp/public-changes.txt
 
       - name: Build instant product lookup
+        if: steps.mode.outputs.skip != 'true'
         run: python .github/workflows/helpers/build_catalog_lookup_index.py
 
       - name: Apply fast site transformations
+        if: steps.mode.outputs.skip != 'true'
         run: |
           python scripts/polish_actress_directory.py
           python scripts/move_ranking_pr_notice.py
@@ -104,14 +139,21 @@ jobs:
           python scripts/run_home_optimizer_safe.py
           python scripts/remove_internal_operator_copy.py
           python .github/workflows/helpers/enhance_product_descriptions.py
+          python scripts/enhance_product_pages_v2.py
           python scripts/validate_actress_alias_db.py
           python scripts/merge_actress_aliases.py
           python scripts/enhance_actress_alias_pages.py
+          python scripts/enhance_entity_seo_v2.py
 
       - name: Deploy
+        if: steps.mode.outputs.skip != 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy public --project-name=okazu-yoridori-midori --branch=main
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Full rebuild handoff
+        if: steps.mode.outputs.skip == 'true'
+        run: echo "Fast deploy skipped cleanly because Daily FANZA refresh owns this change."
