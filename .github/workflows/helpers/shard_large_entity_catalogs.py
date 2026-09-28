@@ -12,6 +12,7 @@ SHARD_ITEMS = 2500
 MAX_SHARD_BYTES = 24 * 1024 * 1024
 OLD_V6_VERSION = "20260928-2348"
 NEW_V6_VERSION = "20260929-0825"
+SHARD_LOADER_VERSION = "20260929-0825"
 
 
 def compact_json(payload: object) -> str:
@@ -71,7 +72,7 @@ def shard_catalog_file(path: Path) -> tuple[bool, int, int]:
         "shards": shards,
         # Compact coverage map: production QA can still verify that the manifest
         # represents every product without making the root file exceed 25 MiB.
-        # v6.js detects `shards` and replaces this map with the real item array.
+        # Browser code replaces this map with the real item array.
         "items": item_lookup,
     }
     manifest_text = compact_json(manifest)
@@ -96,6 +97,23 @@ def bump_v6_cache_version() -> int:
     return changed
 
 
+def inject_shard_loader() -> int:
+    changed = 0
+    tag = f'<script src="/assets/entity-catalog-shards.js?v={SHARD_LOADER_VERSION}"></script>'
+    for entity_type in ENTITY_TYPES:
+        root = ROOT / "ranking" / entity_type
+        if not root.exists():
+            continue
+        for path in root.glob("*/index.html"):
+            text = path.read_text(encoding="utf-8", errors="ignore")
+            if "entity-catalog-shards.js" in text or "/assets/v6.js" not in text:
+                continue
+            text = text.replace('<script src="/assets/v6.js', tag + '<script src="/assets/v6.js', 1)
+            path.write_text(text, encoding="utf-8")
+            changed += 1
+    return changed
+
+
 def main() -> None:
     sharded = 0
     total_shards = 0
@@ -117,9 +135,10 @@ def main() -> None:
                 raise SystemExit(f"Cloudflare Pages file limit still exceeded: {path}={size} bytes")
 
     bumped = bump_v6_cache_version()
+    injected = inject_shard_loader()
     print(
         f"Cloudflare entity sharding: catalogs_sharded={sharded}, shards={total_shards}, "
-        f"largest_file={largest_file}, v6_cache_bumped_pages={bumped}"
+        f"largest_file={largest_file}, v6_cache_bumped_pages={bumped}, shard_loader_pages={injected}"
     )
 
 
