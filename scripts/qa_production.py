@@ -11,6 +11,7 @@ BASE = "https://okazu-yoridori-midori.pages.dev"
 DESKTOP_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/154 Safari/537.36"
 MOBILE_UA = "Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 Chrome/154 Mobile Safari/537.36"
 INVALID_FANZA_MARKERS = ["リンクは機能していません", "この広告リンクは無効", "広告リンクは無効"]
+FACET_ASSET_VERSION = "20260928-1905"
 
 
 def fetch(url: str, user_agent: str = DESKTOP_UA, retries: int = 6) -> tuple[int, str]:
@@ -79,43 +80,78 @@ def test_alias_pages() -> None:
     print(f"QA aliases: {len(groups)} resolved groups; sample={canonical}")
 
 
-def test_genre_catalog() -> None:
-    status, raw = fetch(BASE + "/data/genre-catalog-index.json")
-    assert_true(status == 200, "Full genre catalog index missing")
+def test_full_entity_catalog(entity_type: str) -> tuple[int, int, str, int]:
+    key = "genres" if entity_type == "genre" else "makers"
+    label = "Genre" if entity_type == "genre" else "Maker"
+    status, raw = fetch(BASE + f"/data/{entity_type}-catalog-index.json")
+    assert_true(status == 200, f"Full {entity_type} catalog index missing")
     data = json.loads(raw)
     catalog_count = int(data.get("catalogCount") or 0)
-    genres = data.get("genres") or []
-    assert_true(catalog_count >= 40000, f"Full catalog unexpectedly small for genre aggregation: {catalog_count}")
-    assert_true(bool(genres), "No full-catalog genre groups generated")
+    rows = data.get(key) or []
+    assert_true(catalog_count >= 40000, f"Full catalog unexpectedly small for {entity_type} aggregation: {catalog_count}")
+    assert_true(bool(rows), f"No full-catalog {entity_type} groups generated")
 
     sample = None
     sample_page = ""
-    for row in sorted(genres, key=lambda x: int(x.get("count") or 0), reverse=True)[:30]:
-        gid = str(row.get("id") or "")
-        if not gid or int(row.get("count") or 0) <= 30:
+    for row in sorted(rows, key=lambda x: int(x.get("count") or 0), reverse=True)[:40]:
+        entity_id = str(row.get("id") or "")
+        if not entity_id or int(row.get("count") or 0) <= 30:
             continue
         try:
-            page_status, page = fetch(BASE + f"/ranking/genre/{gid}/", retries=1)
+            page_status, page = fetch(BASE + f"/ranking/{entity_type}/{entity_id}/", retries=1)
         except RuntimeError:
             continue
         if page_status == 200:
             sample = row
             sample_page = page
             break
-    assert_true(sample is not None, "Could not find a live genre page backed by the full catalog")
+    assert_true(sample is not None, f"Could not find a live {entity_type} page backed by the full catalog")
 
     file_url = str(sample.get("file") or "")
     if file_url.startswith("/"):
         file_url = BASE + file_url
-    status, genre_raw = fetch(file_url)
-    assert_true(status == 200, "Full genre product JSON missing")
-    genre_data = json.loads(genre_raw)
-    items = genre_data.get("items") or []
+    status, entity_raw = fetch(file_url)
+    assert_true(status == 200, f"Full {entity_type} product JSON missing")
+    entity_data = json.loads(entity_raw)
+    items = entity_data.get("items") or []
     expected = int(sample.get("count") or 0)
-    assert_true(len(items) == expected, f"Genre count mismatch: index={expected}, file={len(items)}")
-    assert_true(len(items) > 30, "Genre page is still limited to the old 30-product API sample")
-    assert_true("v6.js?v=20260928-1317" in sample_page, "Genre full-catalog loader cache-bust missing")
-    print(f"QA genres: catalog={catalog_count}; sample={sample.get('name')} full_count={len(items)}")
+    assert_true(len(items) == expected, f"{label} count mismatch: index={expected}, file={len(items)}")
+    assert_true(len(items) > 30, f"{label} page is still limited to the old 30-product API sample")
+    assert_true(f"v6.js?v={FACET_ASSET_VERSION}" in sample_page, f"{label} full-catalog loader cache-bust missing")
+    print(f"QA {entity_type}s: catalog={catalog_count}; sample={sample.get('name')} full_count={len(items)}")
+    return catalog_count, len(rows), str(sample.get("name") or ""), len(items)
+
+
+def test_catalog_audit() -> None:
+    status, raw = fetch(BASE + "/data/catalog-audit.json")
+    assert_true(status == 200, "Catalog audit report missing")
+    audit = json.loads(raw)
+    catalog_count = int(audit.get("catalogCount") or 0)
+    assert_true(catalog_count >= 40000, f"Audit catalog unexpectedly small: {catalog_count}")
+    assert_true(int(audit.get("duplicateProductIds") or 0) == 0, f"Duplicate product IDs found: {audit.get('duplicateProductIds')}")
+    assert_true(int(audit.get("invalidProductIds") or 0) == 0, f"Invalid product IDs found: {audit.get('invalidProductIds')}")
+    assert_true(int(audit.get("brokenAffiliateLinks") or 0) == 0, f"Broken affiliate links found: {audit.get('brokenAffiliateLinks')}")
+    assert_true(bool(audit.get("genreAssignmentCheck")), "Genre assignment total does not match genre index total")
+    assert_true(bool(audit.get("makerAssignmentCheck")), "Maker assignment total does not match maker index total")
+    assert_true(int(audit.get("sitemapMissingProductPages") or 0) == 0, f"Sitemap product pages with 404 risk: {audit.get('sitemapMissingProductPages')}")
+    assert_true(bool(audit.get("dynamicProductViewExists")), "Dynamic product fallback page missing")
+    assert_true(int(audit.get("lookupCoverageCount") or 0) == catalog_count, "Product lookup does not cover the whole catalog")
+    print(
+        "QA catalog audit: "
+        f"catalog={catalog_count}, missingGenre={audit.get('missingGenre')}, "
+        f"missingMaker={audit.get('missingMaker')}, missingActress={audit.get('missingActress')}, "
+        f"duplicates={audit.get('duplicateProductIds')}, brokenAffiliate={audit.get('brokenAffiliateLinks')}, "
+        f"sitemap404Risk={audit.get('sitemapMissingProductPages')}"
+    )
+
+
+def test_catalog_ui_asset() -> None:
+    status, script = fetch(BASE + f"/assets/v6.js?v={FACET_ASSET_VERSION}")
+    assert_true(status == 200, "Facet UI asset missing")
+    for marker in ["新着順", "人気順", "評価順", "価格順", "セール順", "女優名で絞り込み", "すべてのメーカー", "セール作品のみ"]:
+        assert_true(marker in script, f"Catalog filter UI missing: {marker}")
+    assert_true("maker-catalog" in script and "genre-catalog" not in script or "${entityType}-catalog" in script, "Generic genre/maker full-catalog loader missing")
+    print("QA catalog UI: sort/filter controls for genre and maker full catalogs OK")
 
 
 def catalog_rows(limit_shards: int = 4) -> list[dict]:
@@ -150,9 +186,7 @@ def find_live_product() -> tuple[str, str, str]:
         if status != 200:
             continue
         links = re.findall(r'href="([^"]*(?:al\.fanza\.co\.jp|al\.dmm\.co\.jp)[^"]*)"', page)
-        if not links:
-            continue
-        if "PRODUCT_PAGE_V2_START" not in page:
+        if not links or "PRODUCT_PAGE_V2_START" not in page:
             continue
         link = html_lib.unescape(links[0])
         return cid, link, page
@@ -169,7 +203,9 @@ def test_product_page() -> tuple[str, str]:
     assert_true("product-page-v2.css" in page, f"Product V2 stylesheet missing on {cid}")
     if "PRODUCT_DESCRIPTION_START" in page:
         assert_true("作品紹介" in page, f"FANZA product description block missing on {cid}")
-    print(f"QA product page: {cid} UX/SEO/related works OK")
+    status, dynamic = fetch(BASE + f"/products/view/?id={cid}")
+    assert_true(status == 200 and "dynamicProduct" in dynamic, f"Dynamic product route failed for {cid}")
+    print(f"QA product page: {cid} UX/SEO/related works/dynamic route OK")
     return cid, link
 
 
@@ -194,7 +230,10 @@ def test_fanza_link(cid: str, link: str) -> None:
 def main() -> None:
     test_fc2()
     test_alias_pages()
-    test_genre_catalog()
+    test_full_entity_catalog("genre")
+    test_full_entity_catalog("maker")
+    test_catalog_audit()
+    test_catalog_ui_asset()
     cid, link = test_product_page()
     test_fanza_link(cid, link)
     print("Production QA passed")
