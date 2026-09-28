@@ -1,186 +1,50 @@
 {
-  "version": 2,
+  "version": 3,
   "description": "公開情報で同一人物と確認できた女優名義を、FANZAカタログ上で1人の人物IDに名寄せするための管理データ。曖昧な短い呼び名や同一人物の確証が弱い組み合わせは登録しない。",
   "updatedAt": "2026-09-28",
   "groups": [
-    {
-      "personId": "actress-0001",
-      "canonical": "乃木蛍",
-      "aliases": [],
-      "extraContentIds": ["300MAAN-740"],
-      "sourceUrls": [
-        "https://seesaawiki.jp/av_neme/d/%C7%B5%CC%DA%B7%D6",
-        "https://seesaawiki.jp/w/sougouwiki/d/MEGATRA"
-      ],
-      "note": "参考ページで乃木蛍の同一人物作品として確認できる個別作品IDを補助登録。"
-    },
-    {
-      "personId": "actress-0002",
-      "canonical": "花崎こはる",
-      "aliases": ["遠藤千夏", "花嵜小春"],
-      "extraContentIds": [],
-      "sourceUrls": ["https://seesaawiki.jp/w/sougouwiki/d/%B2%D6%BA%EA%A4%B3%A4%CF%A4%EB"],
-      "note": "公開ページの見出しで同一人物の別名義として掲載。"
-    },
-    {
-      "personId": "actress-0003",
-      "canonical": "桜華みゆ",
-      "aliases": ["天使みゆ", "夢咲美優"],
-      "extraContentIds": ["277DCV-283", "300MIUM-1234", "200GANA-3200", "SIKA-358", "GDRT-031", "300MAAN-719", "YAHO-020"],
-      "sourceUrls": ["https://seesaawiki.jp/w/sougouwiki/d/%BA%F9%B2%DA%A4%DF%A4%E6"],
-      "note": "公開ページの見出しにある別名義と、同ページの配信作品IDを補助登録。"
-    },
-    {
-      "personId": "actress-0004",
-      "canonical": "新ありな",
-      "aliases": ["橋本ありな"],
-      "extraContentIds": [],
-      "sourceUrls": ["https://seesaawiki.jp/w/sougouwiki/bbs/35317/"],
-      "note": "公開掲示板で新ありなをメイン、橋本ありなを旧名・別名義として明記。"
-    },
-    {
-      "personId": "actress-0005",
-      "canonical": "凪ひかる",
-      "aliases": ["有栖花あか", "汐世"],
-      "extraContentIds": [],
-      "sourceUrls": ["https://seesaawiki.jp/w/sougouwiki/bbs/35317/"],
-      "note": "公開掲示板で凪ひかるをメイン、有栖花あか・汐世を旧名・別名義として明記。"
-    },
-    {
-      "personId": "actress-0006",
-      "canonical": "宮川ありさ",
-      "aliases": ["篠田れいこ"],
-      "extraContentIds": [],
-      "sourceUrls": ["https://seesaawiki.jp/w/sougouwiki/bbs/35317/"],
-      "note": "別名義で作成された篠田れいこの内容を宮川ありさへ移した記録。"
-    },
-    {
-      "personId": "actress-0007",
-      "canonical": "新垣ふみ",
-      "aliases": ["錦織アミ"],
-      "extraContentIds": [],
-      "sourceUrls": ["https://seesaawiki.jp/w/sougouwiki/bbs/35317/"],
-      "note": "錦織アミ名のページを新垣ふみへ統合した記録。"
-    },
-    {
-      "personId": "actress-0008",
-      "canonical": "嶋崎かすみ",
-      "aliases": ["姫野京香"],
-      "extraContentIds": [],
-      "sourceUrls": ["https://seesaawiki.jp/w/sougouwiki/bbs/93/l50"],
-      "note": "同一人物と確認され、姫野京香を嶋崎かすみへ誘導した記録。"
-    },
-    {
-      "personId": "actress-0009",
-      "canonical": "白雪ひなの",
-      "aliases": ["日菜々はのん"],
-      "extraContentIds": [],
-      "sourceUrls": ["https://seesaawiki.jp/w/sougouwiki/bbs/40300/"],
-      "note": "検証後、日菜々はのんから白雪ひなのへページ統合した記録。"
-    },
-    {
-      "personId": "actress-0010",
-      "canonical": "江藤まや",
-      "aliases": ["葉月まなか"],
-      "extraContentIds": [],
-      "sourceUrls": ["https://seesaawiki.jp/w/sougouwiki/bbs/40300/"],
-      "note": "同一人物確認後、江藤まやの別名として葉月まなかを追加した記録。"
-    },
-    {
-      "personId": "actress-0011",
-      "canonical": "木下うるみ",
-      "aliases": ["元美"],
-      "extraContentIds": [],
-      "sourceUrls": ["https://seesaawiki.jp/w/sougouwiki/bbs/767/"],
-      "note": "元美を木下うるみに統合した削除依頼記録。"
-    },
-    {
-      "personId": "actress-0012",
-      "canonical": "永瀬りいな",
-      "aliases": ["茉城ねね"],
-      "extraContentIds": [],
-      "sourceUrls": ["https://seesaawiki.jp/w/sougouwiki/bbs/767/"],
-      "note": "茉城ねねと永瀬りいなが同一人物と判明し統合した記録。"
-    },
-    {
-      "personId": "actress-0013",
-      "canonical": "夏目あきら",
-      "aliases": ["伊東エリ"],
-      "extraContentIds": [],
-      "sourceUrls": ["https://seesaawiki.jp/w/sougouwiki/bbs/761/"],
-      "note": "公開掲示板の改名整理で現在名から旧名への対応として掲載。"
-    },
-    {
-      "personId": "actress-0014",
-      "canonical": "サリー",
-      "aliases": ["結城ありさ"],
-      "extraContentIds": [],
-      "sourceUrls": ["https://seesaawiki.jp/w/sougouwiki/bbs/761/"],
-      "note": "改名整理記録で結城ありさからサリーへの対応を確認。"
-    },
-    {
-      "personId": "actress-0015",
-      "canonical": "加藤えま",
-      "aliases": ["前田えま"],
-      "extraContentIds": [],
-      "sourceUrls": ["https://seesaawiki.jp/w/sougouwiki/bbs/761/"],
-      "note": "改名整理記録で前田えまから加藤えまへの対応を確認。"
-    },
-    {
-      "personId": "actress-0016",
-      "canonical": "初音杏果",
-      "aliases": ["白雪るあ"],
-      "extraContentIds": [],
-      "sourceUrls": ["https://seesaawiki.jp/w/sougouwiki/bbs/761/"],
-      "note": "改名整理記録で白雪るあから初音杏果への対応を確認。"
-    },
-    {
-      "personId": "actress-0017",
-      "canonical": "夜空まひろ",
-      "aliases": ["優保なのか"],
-      "extraContentIds": [],
-      "sourceUrls": ["https://seesaawiki.jp/w/sougouwiki/bbs/761/"],
-      "note": "改名整理記録で優保なのかから夜空まひろへの対応を確認。"
-    },
-    {
-      "personId": "actress-0018",
-      "canonical": "瀬戸すみれ",
-      "aliases": ["木嶋すみれ"],
-      "extraContentIds": [],
-      "sourceUrls": ["https://seesaawiki.jp/w/sougouwiki/bbs/761/"],
-      "note": "公開掲示板で瀬戸すみれ（木嶋すみれ）として同一人物の旧名・別名対応を確認。"
-    },
-    {
-      "personId": "actress-0019",
-      "canonical": "碧しの",
-      "aliases": ["篠めぐみ"],
-      "extraContentIds": [],
-      "sourceUrls": ["https://seesaawiki.jp/w/sougouwiki/bbs/761/"],
-      "note": "公開掲示板の改名整理で碧しの（篠めぐみ）の対応を確認。"
-    },
-    {
-      "personId": "actress-0020",
-      "canonical": "樹花凜",
-      "aliases": ["七咲楓花"],
-      "extraContentIds": [],
-      "sourceUrls": ["https://seesaawiki.jp/w/sougouwiki/bbs/761/"],
-      "note": "公開掲示板の改名整理で樹花凜（七咲楓花）の対応を確認。"
-    },
-    {
-      "personId": "actress-0021",
-      "canonical": "miru",
-      "aliases": ["坂道みる"],
-      "extraContentIds": [],
-      "sourceUrls": ["https://seesaawiki.jp/w/sougouwiki/bbs/35317/"],
-      "note": "公開掲示板で坂道みる＝miruの改名例として掲載。"
-    },
-    {
-      "personId": "actress-0022",
-      "canonical": "江上しほ",
-      "aliases": ["小貴"],
-      "extraContentIds": [],
-      "sourceUrls": ["https://seesaawiki.jp/w/sougouwiki/bbs/761/"],
-      "note": "親名義は江上しほ、別名義に小貴を追記するのが正しいとする整理記録。"
-    }
+    {"personId":"actress-0001","canonical":"乃木蛍","aliases":[],"extraContentIds":["300MAAN-740"],"sourceUrls":["https://seesaawiki.jp/av_neme/d/%C7%B5%CC%DA%B7%D6","https://seesaawiki.jp/w/sougouwiki/d/MEGATRA"],"note":"参考ページで乃木蛍の同一人物作品として確認できる個別作品IDを補助登録。"},
+    {"personId":"actress-0002","canonical":"花崎こはる","aliases":["遠藤千夏","花嵜小春"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/d/%B2%D6%BA%EA%A4%B3%A4%CF%A4%EB"],"note":"公開ページの見出しで同一人物の別名義として掲載。"},
+    {"personId":"actress-0003","canonical":"桜華みゆ","aliases":["天使みゆ","夢咲美優"],"extraContentIds":["277DCV-283","300MIUM-1234","200GANA-3200","SIKA-358","GDRT-031","300MAAN-719","YAHO-020"],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/d/%BA%F9%B2%DA%A4%DF%A4%E6"],"note":"公開ページの見出しにある別名義と、同ページの配信作品IDを補助登録。"},
+    {"personId":"actress-0004","canonical":"新ありな","aliases":["橋本ありな"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/35317/"],"note":"公開掲示板で新ありなをメイン、橋本ありなを旧名・別名義として明記。"},
+    {"personId":"actress-0005","canonical":"凪ひかる","aliases":["有栖花あか","汐世"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/35317/"],"note":"公開掲示板で凪ひかるをメイン、有栖花あか・汐世を旧名・別名義として明記。"},
+    {"personId":"actress-0006","canonical":"宮川ありさ","aliases":["篠田れいこ"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/35317/"],"note":"別名義で作成された篠田れいこの内容を宮川ありさへ移した記録。"},
+    {"personId":"actress-0007","canonical":"新垣ふみ","aliases":["錦織アミ"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/35317/"],"note":"錦織アミ名のページを新垣ふみへ統合した記録。"},
+    {"personId":"actress-0008","canonical":"嶋崎かすみ","aliases":["姫野京香"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/93/l50"],"note":"同一人物と確認され、姫野京香を嶋崎かすみへ誘導した記録。"},
+    {"personId":"actress-0009","canonical":"白雪ひなの","aliases":["日菜々はのん"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/40300/"],"note":"検証後、日菜々はのんから白雪ひなのへページ統合した記録。"},
+    {"personId":"actress-0010","canonical":"江藤まや","aliases":["葉月まなか"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/40300/"],"note":"同一人物確認後、江藤まやの別名として葉月まなかを追加した記録。"},
+    {"personId":"actress-0011","canonical":"木下うるみ","aliases":["元美"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/767/"],"note":"元美を木下うるみに統合した削除依頼記録。"},
+    {"personId":"actress-0012","canonical":"永瀬りいな","aliases":["茉城ねね"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/767/"],"note":"茉城ねねと永瀬りいなが同一人物と判明し統合した記録。"},
+    {"personId":"actress-0013","canonical":"夏目あきら","aliases":["伊東エリ"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/761/"],"note":"公開掲示板の改名整理で現在名から旧名への対応として掲載。"},
+    {"personId":"actress-0014","canonical":"サリー","aliases":["結城ありさ"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/761/"],"note":"改名整理記録で結城ありさからサリーへの対応を確認。"},
+    {"personId":"actress-0015","canonical":"加藤えま","aliases":["前田えま"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/761/"],"note":"改名整理記録で前田えまから加藤えまへの対応を確認。"},
+    {"personId":"actress-0016","canonical":"初音杏果","aliases":["白雪るあ"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/761/"],"note":"改名整理記録で白雪るあから初音杏果への対応を確認。"},
+    {"personId":"actress-0017","canonical":"夜空まひろ","aliases":["優保なのか"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/761/"],"note":"改名整理記録で優保なのかから夜空まひろへの対応を確認。"},
+    {"personId":"actress-0018","canonical":"瀬戸すみれ","aliases":["木嶋すみれ"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/761/"],"note":"公開掲示板で瀬戸すみれ（木嶋すみれ）として同一人物の旧名・別名対応を確認。"},
+    {"personId":"actress-0019","canonical":"碧しの","aliases":["篠めぐみ"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/761/"],"note":"公開掲示板の改名整理で碧しの（篠めぐみ）の対応を確認。"},
+    {"personId":"actress-0020","canonical":"樹花凜","aliases":["七咲楓花"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/761/"],"note":"公開掲示板の改名整理で樹花凜（七咲楓花）の対応を確認。"},
+    {"personId":"actress-0021","canonical":"miru","aliases":["坂道みる"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/35317/"],"note":"公開掲示板で坂道みる＝miruの改名例として掲載。"},
+    {"personId":"actress-0022","canonical":"江上しほ","aliases":["小貴"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/761/"],"note":"親名義は江上しほ、別名義に小貴を追記するのが正しいとする整理記録。"},
+    {"personId":"actress-0023","canonical":"中尾芽衣子","aliases":["NOA","青柳ひなた"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/35317/"],"note":"NOA・青柳ひなたを誘導元、中尾芽衣子をメインにした統合記録。"},
+    {"personId":"actress-0024","canonical":"葉月桃","aliases":["愛野ももな","井駒みつき"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/35317/"],"note":"愛野ももな・井駒みつきを誘導元、葉月桃をメインにした統合記録。"},
+    {"personId":"actress-0025","canonical":"真宮ゆい","aliases":["花井ゆり"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/40300/"],"note":"2026年の改名後、花井ゆりから真宮ゆいへのページ移動が報告されている。"},
+    {"personId":"actress-0026","canonical":"神乃るな","aliases":["大槻ゆりか"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/40300/"],"note":"ページ統合報告で大槻ゆりかから神乃るなへ統合。"},
+    {"personId":"actress-0027","canonical":"みひな","aliases":["三比菜々美"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/40300/"],"note":"ページ統合報告で三比菜々美からみひなへ統合。"},
+    {"personId":"actress-0028","canonical":"古川ほのか","aliases":["古乃ほの"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/40300/"],"note":"ページ統合報告で古乃ほのから古川ほのかへ統合。"},
+    {"personId":"actress-0029","canonical":"福田ゆう","aliases":["七草ことみ"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/40300/"],"note":"七草ことみを福田ゆうへ移動・追記し、旧ページを転送にした記録。"},
+    {"personId":"actress-0030","canonical":"君佳詩織","aliases":["まなか美玖","帝瀧愛"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/40300/"],"note":"まなか美玖と帝瀧愛の転送先を君佳詩織に統一した記録。"},
+    {"personId":"actress-0031","canonical":"宮本聡美","aliases":["宮本さと美"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/40300/l50"],"note":"ページ統合報告で宮本さと美から宮本聡美へ統合。"},
+    {"personId":"actress-0032","canonical":"兒玉七海","aliases":["小倉七海"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/35317/l50"],"note":"改名後の兒玉七海をメイン、小倉七海を誘導ページに変更した記録。"},
+    {"personId":"actress-0033","canonical":"設楽ゆうひ","aliases":["栗宮ふたば"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/35317/l50"],"note":"改名後の設楽ゆうひをメイン、栗宮ふたばを誘導ページに変更した記録。"},
+    {"personId":"actress-0034","canonical":"上原みく","aliases":["旭メイサ"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/35317/l50"],"note":"ページ統合報告で旭メイサから上原みくへ統合。"},
+    {"personId":"actress-0035","canonical":"仲条さき","aliases":["河合美央"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/35317/l50"],"note":"ページ統合報告で河合美央から仲条さきへ統合。"},
+    {"personId":"actress-0036","canonical":"森下美怜","aliases":["相沢夏帆","森咲美鈴","森高美来","美波りな"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/35317/"],"note":"相沢夏帆を旧名として森下美怜へ統合し、森咲美鈴等も同一人物として記録。"},
+    {"personId":"actress-0037","canonical":"若月みいな","aliases":["若槻みづな"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/35317/"],"note":"若槻みづなを旧名として若月みいなへ統合した記録。"},
+    {"personId":"actress-0038","canonical":"白川みなみ","aliases":["岸杏南"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/35317/"],"note":"岸杏南の内容を白川みなみへ移し、岸杏南を転送ページにした記録。"},
+    {"personId":"actress-0039","canonical":"宮原えりな","aliases":["酒井莉乃"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/35317/"],"note":"酒井莉乃と宮原えりなが同一人物と確認され、宮原えりなへ統合。"},
+    {"personId":"actress-0040","canonical":"麻生まり子","aliases":["富樫まり子"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/35317/"],"note":"富樫まり子を旧名として麻生まり子へ誘導した記録。"},
+    {"personId":"actress-0041","canonical":"香澄せな","aliases":["高山玲奈"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/35317/"],"note":"旧名の高山玲奈を香澄せなへ統合した記録。"},
+    {"personId":"actress-0042","canonical":"池内みわ","aliases":["煌芽木ひかる"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/761/"],"note":"同一女優の重複ページとして旧・煌芽木ひかる、新・池内みわの対応が報告され対応済み。"},
+    {"personId":"actress-0043","canonical":"藤井らん","aliases":["桜井みちる"],"extraContentIds":[],"sourceUrls":["https://seesaawiki.jp/w/sougouwiki/bbs/761/"],"note":"同一女優の重複ページとして旧・桜井みちる、新・藤井らんの対応が報告され対応済み。"}
   ]
 }
