@@ -144,6 +144,10 @@ jobs:
         if: steps.mode.outputs.skip != 'true'
         run: python .github/workflows/helpers/build_catalog_lookup_index.py
 
+      - name: Shard oversized entity catalogs for Cloudflare Pages
+        if: steps.mode.outputs.skip != 'true'
+        run: python .github/workflows/helpers/shard_large_entity_catalogs.py
+
       - name: Deploy
         if: steps.mode.outputs.skip != 'true'
         uses: cloudflare/wrangler-action@v3
