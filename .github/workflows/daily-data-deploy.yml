@@ -8,12 +8,15 @@ on:
   push:
     branches: [main]
     paths:
-      # Run a full rebuild when heavy data-generation logic changes.
       - '.github/workflows/daily-data-deploy.yml'
       - '.github/workflows/helpers/patch_full_catalog_comments.py'
       - '.github/workflows/helpers/enhance_product_descriptions.py'
       - 'config/actress_aliases.json'
+      - 'scripts/validate_actress_alias_db.py'
       - 'scripts/merge_actress_aliases.py'
+      - 'scripts/enhance_actress_alias_pages.py'
+      - 'scripts/enhance_product_pages_v2.py'
+      - 'scripts/enhance_entity_seo_v2.py'
       - 'scripts/run_home_optimizer_safe.py'
       - 'scripts/build_fanza_api.py'
       - 'scripts/build_large_taxonomy_directory.py'
@@ -28,7 +31,7 @@ permissions:
   deployments: write
 
 concurrency:
-  group: cloudflare-pages-production
+  group: daily-fanza-data-refresh
   cancel-in-progress: false
 
 jobs:
@@ -92,8 +95,14 @@ jobs:
           DMM_POPULAR_ACTRESS_ENRICH_MISSING: "300"
         run: python scripts/build_dmm_popular_actresses.py
 
+      - name: Validate actress identity database
+        run: python scripts/validate_actress_alias_db.py
+
       - name: Merge same actress across alternate names
         run: python scripts/merge_actress_aliases.py
+
+      - name: Enhance actress profile pages
+        run: python scripts/enhance_actress_alias_pages.py
 
       - name: Bust ranking asset caches
         run: |
@@ -103,9 +112,6 @@ jobs:
 
       - name: Move ranking PR disclosure below products
         run: python scripts/move_ranking_pr_notice.py
-
-      # IMPORTANT: Keep the affiliateURL returned by the DMM/FANZA API unchanged.
-      # Rewriting API links to link_tool URLs invalidates the generated ad link.
 
       - name: Enhance generated ranking SEO
         run: python scripts/enhance_fanza_seo.py
@@ -131,8 +137,27 @@ jobs:
       - name: Add product descriptions from FANZA comments
         run: python .github/workflows/helpers/enhance_product_descriptions.py
 
+      - name: Add related works and stronger product conversion UX
+        run: python scripts/enhance_product_pages_v2.py
+
+      - name: Strengthen product and actress SEO metadata
+        run: python scripts/enhance_entity_seo_v2.py
+
       - name: Build instant product lookup
         run: python .github/workflows/helpers/build_catalog_lookup_index.py
+
+      - name: Verify production build before deploy
+        run: |
+          test -s public/data/full-catalog-manifest.json
+          test -s public/data/actress-alias-groups.json
+          test -s public/data/actress-profile-summary.json
+          test -s public/ranking/actress/aliases/index.html
+          test -s public/assets/product-page-v2.css
+          test -s public/assets/actress-profile-v2.css
+          if grep -RIl --include='*.html' --include='*.json' --include='*.js' 'af_id=okazumidori-001.*ch=link_tool' public | head -n 1 | grep -q .; then
+            echo 'Broken FANZA link_tool URL exists in production build.'
+            exit 1
+          fi
 
       - name: Save production snapshot for fast deploys
         uses: actions/upload-artifact@v4
