@@ -10,6 +10,8 @@ on:
       - 'scripts/validate_actress_alias_db.py'
       - 'scripts/merge_actress_aliases.py'
       - 'scripts/enhance_actress_alias_pages.py'
+      - 'scripts/enrich_fanza_product_comments.py'
+      - '.github/workflows/helpers/enhance_product_descriptions.py'
   workflow_run:
     workflows: ["Daily FANZA data refresh"]
     types: [completed]
@@ -27,7 +29,7 @@ jobs:
   alias-deploy:
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -78,6 +80,15 @@ jobs:
 
       - name: Preserve valid FANZA affiliate links
         run: python scripts/fix_fanza_affiliate_links.py
+
+      - name: Enrich catalog with FANZA product descriptions
+        env:
+          DMM_API_ID: ${{ secrets.DMM_API_ID }}
+          DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
+        run: python scripts/enrich_fanza_product_comments.py
+
+      - name: Add product descriptions to static product pages
+        run: python .github/workflows/helpers/enhance_product_descriptions.py
 
       - name: Validate actress identity database
         run: python scripts/validate_actress_alias_db.py
