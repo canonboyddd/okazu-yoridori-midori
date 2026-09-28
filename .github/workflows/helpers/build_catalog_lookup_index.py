@@ -19,6 +19,7 @@ MAKER_INDEX = DATA / "maker-catalog-index.json"
 ACTRESS_DIR = DATA / "actress-catalog"
 ACTRESS_INDEX = DATA / "actress-catalog-index.json"
 ALIAS_GROUPS = DATA / "actress-alias-groups.json"
+SEARCH_DIR = DATA / "catalog-search"
 SEARCH_INDEX = DATA / "catalog-search-index.json"
 AUDIT_OUTPUT = DATA / "catalog-audit.json"
 SITEMAP = ROOT / "sitemap.xml"
@@ -26,6 +27,7 @@ LOADER_VERSION = "20260928-2348"
 V6_VERSION = "20260928-2348"
 SEARCH_VERSION = "20260928-2348"
 PAGE_SIZE = 60
+SEARCH_SHARD_SIZE = 5000
 BASE_URL = "https://okazu-yoridori-midori.pages.dev"
 ENTITY_LABELS = {"genre": "ジャンル", "maker": "メーカー", "actress": "女優"}
 
@@ -116,6 +118,23 @@ def compact_product(row: dict, alias_map: dict[str, str], alias_meta: dict[str, 
         "reviewCount": int(row.get("reviewCount") or 0),
         "date": str(row.get("date") or ""),
         "discountRate": int(row.get("discountRate") or 0),
+    }
+
+
+def search_product(item: dict) -> dict:
+    return {
+        "id": item.get("id") or "",
+        "title": item.get("title") or "",
+        "image": item.get("image") or "",
+        "price": item.get("price") or "",
+        "priceValue": item.get("priceValue"),
+        "maker": item.get("maker") or "",
+        "actresses": list(item.get("actresses") or []),
+        "genres": list(item.get("genres") or []),
+        "reviewAverage": item.get("reviewAverage") or "",
+        "reviewCount": int(item.get("reviewCount") or 0),
+        "date": item.get("date") or "",
+        "discountRate": int(item.get("discountRate") or 0),
     }
 
 
@@ -318,14 +337,36 @@ def update_sitemap_pagination(urls: list[str]) -> None:
 
 
 def write_search_index(products: list[dict], generated_at: object) -> int:
+    if SEARCH_DIR.exists():
+        shutil.rmtree(SEARCH_DIR)
+    SEARCH_DIR.mkdir(parents=True, exist_ok=True)
+
+    compact = [search_product(item) for item in products]
+    shards: list[dict] = []
+    for shard_no, start in enumerate(range(0, len(compact), SEARCH_SHARD_SIZE), 1):
+        chunk = compact[start:start + SEARCH_SHARD_SIZE]
+        filename = f"catalog-{shard_no:03d}.json"
+        text = json.dumps({"version": 3, "items": chunk}, ensure_ascii=False, separators=(",", ":"))
+        (SEARCH_DIR / filename).write_text(text, encoding="utf-8")
+        size = len(text.encode("utf-8"))
+        if size >= 24 * 1024 * 1024:
+            raise SystemExit(f"Search shard too large for Cloudflare Pages: {filename}={size} bytes")
+        shards.append({
+            "file": f"/data/catalog-search/{filename}",
+            "count": len(chunk),
+            "bytes": size,
+        })
+
     payload = {
-        "version": 2,
+        "version": 3,
         "generatedAt": generated_at,
-        "count": len(products),
-        "items": products,
+        "count": len(compact),
+        "shardSize": SEARCH_SHARD_SIZE,
+        "shardCount": len(shards),
+        "shards": shards,
     }
     SEARCH_INDEX.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-    return len(products)
+    return len(compact)
 
 
 def write_search_page(catalog_count: int) -> None:
@@ -451,7 +492,6 @@ def build_index() -> dict:
         MAKER_DIR, MAKER_INDEX, makers, manifest, "maker", len(lookup)
     )
 
-    # Only publish per-actress catalogs when a real actress profile page exists. Alias IDs are already mapped to canonical IDs.
     actresses = {
         aid: data for aid, data in actresses.items()
         if (ROOT / "ranking" / "actress" / aid / "index.html").exists()
