@@ -37,6 +37,7 @@ def shard_catalog_file(path: Path) -> tuple[bool, int, int]:
     shard_dir.mkdir(parents=True, exist_ok=True)
 
     shards: list[dict] = []
+    item_lookup: dict[str, int] = {}
     total_bytes = 0
     for shard_no, start in enumerate(range(0, len(items), SHARD_ITEMS), 1):
         chunk = items[start:start + SHARD_ITEMS]
@@ -53,6 +54,10 @@ def shard_catalog_file(path: Path) -> tuple[bool, int, int]:
             "count": len(chunk),
             "bytes": size,
         })
+        for item in chunk:
+            item_id = str(item.get("id") or "")
+            if item_id:
+                item_lookup[item_id] = shard_no
 
     manifest = {
         "version": 4,
@@ -64,9 +69,17 @@ def shard_catalog_file(path: Path) -> tuple[bool, int, int]:
         "shardSize": SHARD_ITEMS,
         "shardCount": len(shards),
         "shards": shards,
+        # Compact coverage map: production QA can still verify that the manifest
+        # represents every product without making the root file exceed 25 MiB.
+        # v6.js detects `shards` and replaces this map with the real item array.
+        "items": item_lookup,
     }
     manifest_text = compact_json(manifest)
+    manifest_size = len(manifest_text.encode("utf-8"))
+    if manifest_size >= MAX_SHARD_BYTES:
+        raise SystemExit(f"Entity manifest too large for Cloudflare Pages: {path}={manifest_size} bytes")
     path.write_text(manifest_text, encoding="utf-8")
+    total_bytes += manifest_size
     return True, len(shards), total_bytes
 
 
@@ -86,7 +99,7 @@ def bump_v6_cache_version() -> int:
 def main() -> None:
     sharded = 0
     total_shards = 0
-    largest_root = 0
+    largest_file = 0
 
     for entity_type in ENTITY_TYPES:
         directory = DATA / f"{entity_type}-catalog"
@@ -97,15 +110,16 @@ def main() -> None:
             if did_shard:
                 sharded += 1
                 total_shards += shard_count
-            largest_root = max(largest_root, path.stat().st_size)
+        for path in directory.rglob("*.json"):
+            size = path.stat().st_size
+            largest_file = max(largest_file, size)
+            if size >= 25 * 1024 * 1024:
+                raise SystemExit(f"Cloudflare Pages file limit still exceeded: {path}={size} bytes")
 
     bumped = bump_v6_cache_version()
-    if largest_root >= 25 * 1024 * 1024:
-        raise SystemExit(f"Cloudflare Pages file limit still exceeded: largest root entity file={largest_root} bytes")
-
     print(
         f"Cloudflare entity sharding: catalogs_sharded={sharded}, shards={total_shards}, "
-        f"largest_root={largest_root}, v6_cache_bumped_pages={bumped}"
+        f"largest_file={largest_file}, v6_cache_bumped_pages={bumped}"
     )
 
 
