@@ -78,10 +78,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!existingGrid || document.querySelector('[data-full-entity-catalog="1"]')) return;
 
     try {
-      const res = await fetch(`/data/${entityType}-catalog/${encodeURIComponent(entityId)}.json?v=20260928-2348`, {cache: 'no-cache'});
+      const res = await fetch(`/data/${entityType}-catalog/${encodeURIComponent(entityId)}.json?v=20260929-0825`, {cache: 'no-cache'});
       if (!res.ok) return;
       const data = await res.json();
-      const items = Array.isArray(data.items) ? data.items : [];
+      let items = Array.isArray(data.items) ? data.items : [];
+      if (!items.length && Array.isArray(data.shards) && data.shards.length) {
+        const parts = await Promise.all(data.shards.map(async shard => {
+          const shardRes = await fetch(`${shard.file}?v=20260929-0825`, {cache: 'no-cache'});
+          if (!shardRes.ok) throw new Error(`HTTP ${shardRes.status}: ${shard.file}`);
+          const shardData = await shardRes.json();
+          return Array.isArray(shardData.items) ? shardData.items : [];
+        }));
+        items = parts.flat();
+      }
       if (!items.length) return;
 
       const PAGE_SIZE = 60;
