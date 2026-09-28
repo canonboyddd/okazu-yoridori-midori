@@ -2,19 +2,6 @@ name: Actress alias merge deploy
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/actress-alias-deploy.yml'
-      - 'config/actress_aliases.json'
-      - 'scripts/validate_actress_alias_db.py'
-      - 'scripts/merge_actress_aliases.py'
-      - 'scripts/enhance_actress_alias_pages.py'
-      - 'scripts/enrich_fanza_product_comments.py'
-      - '.github/workflows/helpers/enhance_product_descriptions.py'
-  workflow_run:
-    workflows: ["Daily FANZA data refresh"]
-    types: [completed]
 
 permissions:
   contents: read
@@ -22,12 +9,11 @@ permissions:
   deployments: write
 
 concurrency:
-  group: cloudflare-pages-production
+  group: actress-alias-manual-deploy
   cancel-in-progress: false
 
 jobs:
   alias-deploy:
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -99,20 +85,27 @@ jobs:
       - name: Enhance actress profile pages
         run: python scripts/enhance_actress_alias_pages.py
 
-      - name: Verify alias output
+      - name: Enhance product pages and SEO
+        run: |
+          python scripts/enhance_product_pages_v2.py
+          python scripts/enhance_entity_seo_v2.py
+          python .github/workflows/helpers/build_catalog_lookup_index.py
+
+      - name: Verify manual alias output
         run: |
           test -s public/data/actress-identity-db.json
           test -s public/data/actress-alias-groups.json
           test -s public/data/actress-profile-summary.json
           test -s public/ranking/actress/aliases/index.html
           test -s public/assets/actress-profile-v2.css
+          test -s public/assets/product-page-v2.css
           python - <<'PY'
           import json
           from pathlib import Path
           config = json.loads(Path('config/actress_aliases.json').read_text(encoding='utf-8'))
           data = json.loads(Path('public/data/actress-alias-groups.json').read_text(encoding='utf-8'))
           summary = json.loads(Path('public/data/actress-profile-summary.json').read_text(encoding='utf-8'))
-          if len(config.get('groups') or []) < 20:
+          if len(config.get('groups') or []) < 40:
               raise SystemExit('Alias identity database unexpectedly small')
           if not data.get('groups'):
               raise SystemExit('No resolved actress alias groups')
@@ -121,10 +114,9 @@ jobs:
           print('Configured identities:', len(config.get('groups') or []))
           print('Resolved identities:', len(data.get('groups') or []))
           print('Enhanced profiles:', len(summary.get('profiles') or []))
-          print('Resolved alias groups:', [(g['canonical'], g['workCount']) for g in data['groups']])
           PY
           if grep -RIl --include='*.html' --include='*.json' --include='*.js' 'af_id=okazumidori-001.*ch=link_tool' public | head -n 1 | grep -q .; then
-            echo 'Broken FANZA link_tool URL exists in alias deployment output.'
+            echo 'Broken FANZA link_tool URL exists in manual alias deployment output.'
             exit 1
           fi
 
@@ -135,6 +127,3 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy public --project-name=okazu-yoridori-midori --branch=main
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Hand off to Production QA
-        run: echo "Cloudflare Pages deployment completed; Production QA will run after this workflow succeeds."
