@@ -1,3 +1,4 @@
+// Full-catalog sharded search loader v20260928-2348
 (() => {
   const app = document.querySelector('#catalogAdvancedSearch');
   if (!app) return;
