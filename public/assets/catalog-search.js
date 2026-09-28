@@ -187,12 +187,34 @@
     app.querySelector('[data-next]').addEventListener('click', () => { const pages = Math.max(1, Math.ceil(filtered.length/PAGE_SIZE)); if (page < pages) { page++; render(true); } });
   }
 
+  async function fetchShard(ref, index, total) {
+    const file = String(ref && ref.file || '');
+    if (!file) return [];
+    const status = app.querySelector('.catalog-search-loading');
+    if (status) status.textContent = `検索データを読み込み中です… ${index + 1}/${total}`;
+    const res = await fetch(`${file}?v=20260928-2348`, {cache:'no-cache'});
+    if (!res.ok) throw new Error(`Shard HTTP ${res.status}: ${file}`);
+    const payload = await res.json();
+    return Array.isArray(payload.items) ? payload.items : [];
+  }
+
   async function init() {
     try {
       const res = await fetch('/data/catalog-search-index.json?v=20260928-2348', {cache:'no-cache'});
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      all = Array.isArray(data.items) ? data.items : [];
+      const shards = Array.isArray(data.shards) ? data.shards : [];
+      if (!shards.length) throw new Error('Search shard manifest is empty');
+
+      const chunks = [];
+      for (let i = 0; i < shards.length; i++) {
+        chunks.push(await fetchShard(shards[i], i, shards.length));
+      }
+      all = chunks.flat();
+      if (Number(data.count || 0) && all.length !== Number(data.count)) {
+        throw new Error(`Search count mismatch: ${all.length}/${data.count}`);
+      }
+
       const makers = uniqueSorted(all.map(x => x.maker));
       const genres = uniqueSorted(all.flatMap(x => Array.isArray(x.genres) ? x.genres : []));
       injectStyle();
