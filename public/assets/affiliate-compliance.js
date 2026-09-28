@@ -200,28 +200,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const rel = new Set((a.getAttribute("rel") || "").split(/\s+/).filter(Boolean));
       ["sponsored", "nofollow", "noopener", "noreferrer"].forEach(x => rel.add(x));
       a.setAttribute("rel", [...rel].join(" "));
-
-      if (a.dataset.affiliateTrackingReady === "1") return;
       a.dataset.affiliateTrackingReady = "1";
-      a.addEventListener("click", () => {
-        const finalUrl = repairFanzaAffiliateUrl(a.href);
-        if (finalUrl && finalUrl !== a.href) a.href = finalUrl;
-        const target = a.dataset.affiliateTarget || u.hostname;
-        if (typeof window.gtag === "function") {
-          window.gtag("event", "affiliate_click", {
-            affiliate_service: "DMM/FANZA",
-            affiliate_target: target,
-            page_path: location.pathname
-          });
-        } else if (Array.isArray(window.dataLayer)) {
-          window.dataLayer.push({
-            event: "affiliate_click",
-            affiliate_service: "DMM/FANZA",
-            affiliate_target: target,
-            page_path: location.pathname
-          });
-        }
-      });
     } catch (_) {}
   }
 
@@ -248,7 +227,6 @@ document.addEventListener("DOMContentLoaded", () => {
   apiScript.async = true;
   document.body.appendChild(apiScript);
 
-  // FC2 Affiliate placements. Kept separate from FANZA links so tracking and disclosures stay clear.
   const fc2Script = document.createElement("script");
   fc2Script.src = "/assets/fc2-affiliate-banners.js?v=20260926-1032";
   fc2Script.async = true;
