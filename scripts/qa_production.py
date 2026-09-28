@@ -4,7 +4,6 @@ import html as html_lib
 import json
 import re
 import time
-from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -73,26 +72,35 @@ def test_alias_pages() -> None:
     assert_true("総作品数" in profile, "Enhanced actress profile stats missing")
     assert_true("出演メーカー" in profile and "関連ジャンル" in profile, "Enhanced actress metadata sections missing")
     assert_true("この女優の全作品を見る" in profile, "All-works CTA missing")
+    assert_true("人気作品" in profile and "新着作品" in profile, "Actress popular/latest sections missing")
+    assert_true("AV作品一覧・別名義・出演作品・FANZA情報" in profile, "Actress SEO title missing")
     status, works = fetch(BASE + f"/ranking/actress/{canonical_id}/works/")
     assert_true(status == 200 and "全作品一覧" in works, "All actress works page missing")
     print(f"QA aliases: {len(groups)} resolved groups; sample={canonical}")
 
 
-def find_live_product() -> tuple[str, str]:
+def catalog_rows(limit_shards: int = 4) -> list[dict]:
     _, manifest_raw = fetch(BASE + "/data/full-catalog-manifest.json")
     manifest = json.loads(manifest_raw)
     shards = manifest.get("shards") or []
     assert_true(bool(shards), "Catalog manifest has no shards")
-    shard_url = str(shards[0].get("file") or "")
-    if shard_url.startswith("/"):
-        shard_url = BASE + shard_url
-    _, shard_raw = fetch(shard_url)
-    rows = json.loads(shard_raw)
-    assert_true(isinstance(rows, list) and rows, "First catalog shard is empty")
+    rows: list[dict] = []
+    for shard in shards[:limit_shards]:
+        shard_url = str(shard.get("file") or "")
+        if shard_url.startswith("/"):
+            shard_url = BASE + shard_url
+        _, shard_raw = fetch(shard_url)
+        payload = json.loads(shard_raw)
+        if isinstance(payload, list):
+            rows.extend(x for x in payload if isinstance(x, dict))
+    return rows
 
-    for row in rows[:150]:
-        if not isinstance(row, dict):
-            continue
+
+def find_live_product() -> tuple[str, str, str]:
+    rows = catalog_rows()
+    # Prefer a product with a real FANZA description so the static description block can be verified.
+    ranked = sorted(rows, key=lambda x: (1 if str(x.get("comment") or "").strip() else 0, int(x.get("reviewCount") or 0)), reverse=True)
+    for row in ranked[:500]:
         api_link = str(row.get("affiliateURL") or "")
         if api_link:
             assert_true("okazumidori-001" not in api_link and "ch=link_tool" not in api_link, "Broken legacy FANZA URL remains in catalog JSON")
@@ -103,16 +111,32 @@ def find_live_product() -> tuple[str, str]:
             continue
         if status != 200:
             continue
-        links = re.findall(r'href="([^"]*al\.fanza\.co\.jp[^"]*)"', page)
+        links = re.findall(r'href="([^"]*(?:al\.fanza\.co\.jp|al\.dmm\.co\.jp)[^"]*)"', page)
         if not links:
             continue
+        if "PRODUCT_PAGE_V2_START" not in page:
+            continue
         link = html_lib.unescape(links[0])
-        return cid, link
-    raise RuntimeError("Could not find a static production product page with a FANZA affiliate link")
+        return cid, link, page
+    raise RuntimeError("Could not find a static production product page with FANZA affiliate link and Product Page V2")
 
 
-def test_fanza_link() -> None:
-    cid, link = find_live_product()
+def test_product_page() -> tuple[str, str]:
+    cid, link, page = find_live_product()
+    assert_true("作品の特徴" in page, f"Product feature block missing on {cid}")
+    assert_true("FANZAでこの作品を見る" in page, f"Top FANZA CTA missing on {cid}")
+    assert_true("FANZA公式でこの作品を確認" in page, f"Bottom FANZA CTA missing on {cid}")
+    assert_true("関連作品" in page or "おすすめ" in page, f"Related product sections missing on {cid}")
+    assert_true("FANZA作品情報" in page, f"Product SEO title missing on {cid}")
+    assert_true("product-page-v2.css" in page, f"Product V2 stylesheet missing on {cid}")
+    # Real FANZA comments are preferred when available; generic runtime fallback covers products without comments.
+    if "PRODUCT_DESCRIPTION_START" in page:
+        assert_true("作品紹介" in page, f"FANZA product description block missing on {cid}")
+    print(f"QA product page: {cid} UX/SEO/related works OK")
+    return cid, link
+
+
+def test_fanza_link(cid: str, link: str) -> None:
     assert_true("okazumidori-001" not in link, f"Legacy affiliate ID remains on product {cid}")
     assert_true("ch=link_tool" not in link, f"Legacy link_tool remains on product {cid}")
     assert_true("af_id=okazumidori-990" in link, f"Expected API affiliate ID missing on product {cid}")
@@ -126,8 +150,6 @@ def test_fanza_link() -> None:
             assert_true(not invalid, f"FANZA reports invalid affiliate link for {label} on product {cid}")
             results.append(f"{label}:{status}")
         except RuntimeError as exc:
-            # FANZA may reject automated requests while still working in a normal browser.
-            # URL structure has already been verified above, so treat bot/network rejection as a warning.
             results.append(f"{label}:external-check-warning({exc})")
     print(f"QA FANZA: product={cid}; " + ", ".join(results))
 
@@ -135,7 +157,8 @@ def test_fanza_link() -> None:
 def main() -> None:
     test_fc2()
     test_alias_pages()
-    test_fanza_link()
+    cid, link = test_product_page()
+    test_fanza_link(cid, link)
     print("Production QA passed")
 
 
