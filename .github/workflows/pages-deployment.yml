@@ -122,10 +122,6 @@ jobs:
             fi
           done < /tmp/public-changes.txt
 
-      - name: Build instant product lookup
-        if: steps.mode.outputs.skip != 'true'
-        run: python .github/workflows/helpers/build_catalog_lookup_index.py
-
       - name: Apply fast site transformations
         if: steps.mode.outputs.skip != 'true'
         run: |
@@ -144,6 +140,10 @@ jobs:
           python scripts/merge_actress_aliases.py
           python scripts/enhance_actress_alias_pages.py
           python scripts/enhance_entity_seo_v2.py
+
+      - name: Build full catalog facets search and SEO pagination
+        if: steps.mode.outputs.skip != 'true'
+        run: python .github/workflows/helpers/build_catalog_lookup_index.py
 
       - name: Deploy
         if: steps.mode.outputs.skip != 'true'
