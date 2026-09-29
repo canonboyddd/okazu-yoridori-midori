@@ -32,7 +32,7 @@ jobs:
         run: |
           git diff --name-only HEAD^ HEAD > /tmp/current-change.txt || true
           cat /tmp/current-change.txt
-          if grep -Eq '^(config/actress_aliases\.json|scripts/(validate_actress_alias_db|merge_actress_aliases|enhance_actress_alias_pages|enhance_product_pages_v2|enhance_entity_seo_v2|build_fanza_api|build_large_taxonomy_directory|rebuild_actress_directory_balanced|build_full_catalog_upgrade|enrich_fanza_product_comments|build_dmm_popular_actresses)\.py|\.github/workflows/helpers/(patch_full_catalog_comments|enhance_product_descriptions)\.py)$' /tmp/current-change.txt; then
+          if grep -Eq '^(config/actress_aliases\.json|scripts/(validate_actress_alias_db|merge_actress_aliases|enhance_actress_alias_pages|enhance_product_pages_v2|enhance_entity_seo_v2|build_fanza_api|build_large_taxonomy_directory|rebuild_actress_directory_balanced|build_full_catalog_upgrade|build_dmm_popular_actresses|enforce_cloudflare_pages_limit)\.py|\.github/workflows/helpers/(patch_full_catalog_comments|enhance_product_descriptions)\.py)$' /tmp/current-change.txt; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
             echo "A full FANZA refresh owns this change; fast deploy will not race it."
           else
@@ -79,7 +79,7 @@ jobs:
         run: |
           git diff --name-only "$SNAPSHOT_SHA" "$GITHUB_SHA" > /tmp/since-snapshot.txt
           cat /tmp/since-snapshot.txt
-          if grep -Eq '^(config/actress_aliases\.json|scripts/(validate_actress_alias_db|merge_actress_aliases|enhance_actress_alias_pages|enhance_product_pages_v2|enhance_entity_seo_v2|build_fanza_api|build_large_taxonomy_directory|rebuild_actress_directory_balanced|build_full_catalog_upgrade|enrich_fanza_product_comments|build_dmm_popular_actresses)\.py|\.github/workflows/helpers/(patch_full_catalog_comments|enhance_product_descriptions)\.py)$' /tmp/since-snapshot.txt; then
+          if grep -Eq '^(config/actress_aliases\.json|scripts/(validate_actress_alias_db|merge_actress_aliases|enhance_actress_alias_pages|enhance_product_pages_v2|enhance_entity_seo_v2|build_fanza_api|build_large_taxonomy_directory|rebuild_actress_directory_balanced|build_full_catalog_upgrade|build_dmm_popular_actresses|enforce_cloudflare_pages_limit)\.py|\.github/workflows/helpers/(patch_full_catalog_comments|enhance_product_descriptions)\.py)$' /tmp/since-snapshot.txt; then
             echo "Full-data changes exist after the latest production snapshot. Waiting for the next Daily FANZA snapshot is required."
             exit 1
           fi
@@ -147,6 +147,24 @@ jobs:
       - name: Shard oversized entity catalogs for Cloudflare Pages
         if: steps.mode.outputs.skip != 'true'
         run: python .github/workflows/helpers/shard_large_entity_catalogs.py
+
+      - name: Refresh final theme and ranking badge styles
+        if: steps.mode.outputs.skip != 'true'
+        run: python scripts/inject_colorful_readability.py
+
+      - name: Enforce Cloudflare Pages file limit
+        if: steps.mode.outputs.skip != 'true'
+        env:
+          CLOUDFLARE_PAGES_TARGET_FILES: "19000"
+          CLOUDFLARE_PROTECTED_PRODUCT_IDS: "1sods00082"
+        run: python scripts/enforce_cloudflare_pages_limit.py
+
+      - name: Verify Cloudflare file count
+        if: steps.mode.outputs.skip != 'true'
+        run: |
+          FILE_COUNT="$(find public -type f | wc -l | tr -d ' ')"
+          echo "Fast deploy file count: $FILE_COUNT"
+          test "$FILE_COUNT" -le 20000
 
       - name: Deploy
         if: steps.mode.outputs.skip != 'true'
