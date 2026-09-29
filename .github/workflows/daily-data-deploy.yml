@@ -26,6 +26,7 @@ on:
       - 'scripts/build_dmm_popular_actresses.py'
       - 'scripts/enforce_cloudflare_pages_limit.py'
       - 'scripts/inject_colorful_readability.py'
+      - 'scripts/optimize_sale_page.py'
       - 'public/assets/rank-contrast-fix.css'
 
 permissions:
@@ -140,6 +141,11 @@ jobs:
       - name: Strengthen product and actress SEO metadata
         run: python scripts/enhance_entity_seo_v2.py
 
+      - name: Compact heavy sale page
+        env:
+          SALE_STATIC_LIMIT: "120"
+        run: python scripts/optimize_sale_page.py
+
       - name: Build instant product lookup
         run: python .github/workflows/helpers/build_catalog_lookup_index.py
 
@@ -164,6 +170,9 @@ jobs:
           test -s public/assets/product-page-v2.css
           test -s public/assets/actress-profile-v2.css
           test -s public/assets/rank-contrast-fix.css
+          SALE_CARDS="$(grep -o 'class="fc-card"' public/sale/index.html | wc -l | tr -d ' ')"
+          echo "Sale page visible cards: $SALE_CARDS"
+          test "$SALE_CARDS" -le 120
           FILE_COUNT="$(find public -type f | wc -l | tr -d ' ')"
           echo "Production file count: $FILE_COUNT"
           if [ "$FILE_COUNT" -gt 20000 ]; then
