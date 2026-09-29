@@ -4,9 +4,10 @@ import re
 from pathlib import Path
 
 ROOT = Path("public")
-ASSET_VERSION = "20260927-1450"
+ASSET_VERSION = "20260929-1554"
 ASSET = f"/assets/colorful-readable-v1.css?v={ASSET_VERSION}"
-LINK = f'<link rel="stylesheet" href="{ASSET}">'
+RANK_ASSET = f"/assets/rank-contrast-fix.css?v={ASSET_VERSION}"
+LINK = f'<link rel="stylesheet" href="{ASSET}"><link rel="stylesheet" href="{RANK_ASSET}">'
 
 
 def patch(path: Path) -> bool:
@@ -28,9 +29,15 @@ def patch(path: Path) -> bool:
         flags=re.I,
     )
 
-    # Remove older copies/versions so the theme is loaded exactly once and last.
+    # Remove older copies/versions so the theme and rank override are loaded once and last.
     text = re.sub(
         r'<link\s+rel="stylesheet"\s+href="/assets/colorful-readable-v1\.css(?:\?v=[^"]*)?"\s*/?>',
+        "",
+        text,
+        flags=re.I,
+    )
+    text = re.sub(
+        r'<link\s+rel="stylesheet"\s+href="/assets/rank-contrast-fix\.css(?:\?v=[^"]*)?"\s*/?>',
         "",
         text,
         flags=re.I,

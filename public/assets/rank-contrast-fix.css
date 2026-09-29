@@ -1,0 +1,47 @@
+/* Ranking badge readability fix: loaded after the site-wide theme. */
+.entity-rank{
+  min-width:46px!important;
+  height:42px!important;
+  padding:0 10px!important;
+  border-radius:999px!important;
+  background:#111827!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  border:2px solid rgba(255,255,255,.96)!important;
+  font-size:.86rem!important;
+  font-weight:950!important;
+  line-height:1!important;
+  letter-spacing:.01em!important;
+  text-shadow:0 1px 2px rgba(0,0,0,.6)!important;
+  box-shadow:0 5px 14px rgba(15,23,42,.34)!important;
+}
+.entity-rank.r1{
+  background:linear-gradient(135deg,#facc15,#f59e0b)!important;
+  color:#2b1b00!important;
+  -webkit-text-fill-color:#2b1b00!important;
+  border-color:#fff7cc!important;
+  text-shadow:none!important;
+}
+.entity-rank.r2{
+  background:linear-gradient(135deg,#f1f5f9,#94a3b8)!important;
+  color:#111827!important;
+  -webkit-text-fill-color:#111827!important;
+  border-color:#fff!important;
+  text-shadow:none!important;
+}
+.entity-rank.r3{
+  background:linear-gradient(135deg,#d97706,#92400e)!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  border-color:#ffedd5!important;
+}
+@media(max-width:700px){
+  .entity-rank{
+    top:8px!important;
+    left:8px!important;
+    min-width:48px!important;
+    height:42px!important;
+    padding:0 10px!important;
+    font-size:.9rem!important;
+  }
+}

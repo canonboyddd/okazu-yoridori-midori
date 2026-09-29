@@ -58,6 +58,8 @@ jobs:
             assets/fanza-products.js \
             assets/v6.js \
             assets/fc2-adult.css \
+            assets/colorful-readable-v1.css \
+            assets/rank-contrast-fix.css \
             fc2-adult/index.html; do
             if [ -f "repo-public/$rel" ]; then
               mkdir -p "public/$(dirname "$rel")"
@@ -67,12 +69,6 @@ jobs:
 
       - name: Preserve valid FANZA affiliate links
         run: python scripts/fix_fanza_affiliate_links.py
-
-      - name: Enrich catalog with FANZA product descriptions
-        env:
-          DMM_API_ID: ${{ secrets.DMM_API_ID }}
-          DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
-        run: python scripts/enrich_fanza_product_comments.py
 
       - name: Add product descriptions to static product pages
         run: python .github/workflows/helpers/enhance_product_descriptions.py
@@ -92,6 +88,13 @@ jobs:
           python scripts/enhance_entity_seo_v2.py
           python .github/workflows/helpers/build_catalog_lookup_index.py
           python .github/workflows/helpers/shard_large_entity_catalogs.py
+          python scripts/inject_colorful_readability.py
+
+      - name: Enforce Cloudflare Pages file limit
+        env:
+          CLOUDFLARE_PAGES_TARGET_FILES: "19000"
+          CLOUDFLARE_PROTECTED_PRODUCT_IDS: "1sods00082"
+        run: python scripts/enforce_cloudflare_pages_limit.py
 
       - name: Verify manual alias output
         run: |
@@ -101,6 +104,10 @@ jobs:
           test -s public/ranking/actress/aliases/index.html
           test -s public/assets/actress-profile-v2.css
           test -s public/assets/product-page-v2.css
+          test -s public/assets/rank-contrast-fix.css
+          FILE_COUNT="$(find public -type f | wc -l | tr -d ' ')"
+          echo "Alias deploy file count: $FILE_COUNT"
+          test "$FILE_COUNT" -le 20000
           python - <<'PY'
           import json
           from pathlib import Path

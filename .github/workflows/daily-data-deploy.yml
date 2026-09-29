@@ -23,8 +23,10 @@ on:
       - 'scripts/build_large_taxonomy_directory.py'
       - 'scripts/rebuild_actress_directory_balanced.py'
       - 'scripts/build_full_catalog_upgrade.py'
-      - 'scripts/enrich_fanza_product_comments.py'
       - 'scripts/build_dmm_popular_actresses.py'
+      - 'scripts/enforce_cloudflare_pages_limit.py'
+      - 'scripts/inject_colorful_readability.py'
+      - 'public/assets/rank-contrast-fix.css'
 
 permissions:
   contents: read
@@ -78,14 +80,8 @@ jobs:
           DMM_API_ID: ${{ secrets.DMM_API_ID }}
           DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
           DMM_FULL_CATALOG_MAX_PAGES: "0"
-          MAX_INDEXABLE_FILES: "18000"
+          MAX_INDEXABLE_FILES: "10000"
         run: python scripts/build_full_catalog_upgrade.py
-
-      - name: Enrich full catalog with FANZA product descriptions
-        env:
-          DMM_API_ID: ${{ secrets.DMM_API_ID }}
-          DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
-        run: python scripts/enrich_fanza_product_comments.py
 
       - name: Build DMM popularity-first actress ranking and 50-on data
         env:
@@ -150,6 +146,15 @@ jobs:
       - name: Shard oversized entity catalogs for Cloudflare Pages
         run: python .github/workflows/helpers/shard_large_entity_catalogs.py
 
+      - name: Refresh final theme and ranking badge styles
+        run: python scripts/inject_colorful_readability.py
+
+      - name: Enforce Cloudflare Pages file limit
+        env:
+          CLOUDFLARE_PAGES_TARGET_FILES: "19000"
+          CLOUDFLARE_PROTECTED_PRODUCT_IDS: "1sods00082"
+        run: python scripts/enforce_cloudflare_pages_limit.py
+
       - name: Verify production build before deploy
         run: |
           test -s public/data/full-catalog-manifest.json
@@ -158,6 +163,13 @@ jobs:
           test -s public/ranking/actress/aliases/index.html
           test -s public/assets/product-page-v2.css
           test -s public/assets/actress-profile-v2.css
+          test -s public/assets/rank-contrast-fix.css
+          FILE_COUNT="$(find public -type f | wc -l | tr -d ' ')"
+          echo "Production file count: $FILE_COUNT"
+          if [ "$FILE_COUNT" -gt 20000 ]; then
+            echo "Cloudflare Pages only supports up to 20,000 files."
+            exit 1
+          fi
           if grep -RIl --include='*.html' --include='*.json' --include='*.js' 'af_id=okazumidori-001.*ch=link_tool' public | head -n 1 | grep -q .; then
             echo 'Broken FANZA link_tool URL exists in production build.'
             exit 1
