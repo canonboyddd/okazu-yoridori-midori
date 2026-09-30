@@ -6,8 +6,12 @@ from pathlib import Path
 
 SALE_PAGE = Path("public/sale/index.html")
 LIMIT = int(os.environ.get("SALE_STATIC_LIMIT", "120"))
-CARD_RE = re.compile(r'<a class="fc-card"\b.*?</a>', re.S)
+# Generated sale cards use an exact class="fc-card" marker. The previous
+# regex placed a word-boundary after the closing quote, so it matched zero
+# cards even though thousands were present.
+CARD_RE = re.compile(r'<a class="fc-card"[^>]*>.*?</a>', re.S)
 SUMMARY_RE = re.compile(r'<div class="fc-sale-summary">.*?</div>', re.S)
+CARD_MARKER = 'class="fc-card"'
 
 
 def main() -> None:
@@ -15,8 +19,16 @@ def main() -> None:
         raise SystemExit("public/sale/index.html is missing")
 
     text = SALE_PAGE.read_text(encoding="utf-8")
+    marker_count = text.count(CARD_MARKER)
     cards = list(CARD_RE.finditer(text))
     total = len(cards)
+
+    # Never silently report zero when the generated HTML still contains cards.
+    if marker_count != total:
+        raise SystemExit(
+            f"Sale card parser mismatch: markers={marker_count}, parsed={total}"
+        )
+
     if total <= LIMIT:
         print(f"Sale page already compact: {total} cards")
         return
@@ -42,9 +54,13 @@ def main() -> None:
     )
 
     SALE_PAGE.write_text(text, encoding="utf-8")
+    final_marker_count = text.count(CARD_MARKER)
     final_cards = len(CARD_RE.findall(text))
-    if final_cards != LIMIT:
-        raise SystemExit(f"Sale page compaction failed: expected {LIMIT}, got {final_cards}")
+    if final_cards != LIMIT or final_marker_count != LIMIT:
+        raise SystemExit(
+            "Sale page compaction failed: "
+            f"expected={LIMIT}, parsed={final_cards}, markers={final_marker_count}"
+        )
     print(f"Sale page optimized: total={total}, visible={final_cards}")
 
 
