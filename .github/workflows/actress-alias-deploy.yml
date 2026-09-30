@@ -87,6 +87,7 @@ jobs:
           python scripts/enhance_product_pages_v2.py
           python scripts/enhance_entity_seo_v2.py
           python .github/workflows/helpers/build_catalog_lookup_index.py
+          python scripts/fix_actress_catalog_index.py
           python .github/workflows/helpers/shard_large_entity_catalogs.py
           python scripts/inject_colorful_readability.py
 
@@ -101,10 +102,12 @@ jobs:
           test -s public/data/actress-identity-db.json
           test -s public/data/actress-alias-groups.json
           test -s public/data/actress-profile-summary.json
+          test -s public/data/actress-catalog-index.json
           test -s public/ranking/actress/aliases/index.html
           test -s public/assets/actress-profile-v2.css
           test -s public/assets/product-page-v2.css
           test -s public/assets/rank-contrast-fix.css
+          python -c 'import json; d=json.load(open("public/data/actress-catalog-index.json", encoding="utf-8")); assert isinstance(d.get("actresses"), list) and d["actresses"]; assert "actresss" not in d'
           FILE_COUNT="$(find public -type f | wc -l | tr -d ' ')"
           echo "Alias deploy file count: $FILE_COUNT"
           test "$FILE_COUNT" -le 20000
