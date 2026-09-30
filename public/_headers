@@ -22,6 +22,18 @@
 /assets/fanza-products.js
   Cache-Control: no-cache, must-revalidate
 
+/assets/v6.js
+  Cache-Control: no-cache, must-revalidate
+
+/assets/catalog-search.js
+  Cache-Control: no-cache, must-revalidate
+
+/assets/ga4.js
+  Cache-Control: no-cache, must-revalidate
+
+/assets/rank-contrast-fix.css
+  Cache-Control: no-cache, must-revalidate
+
 /assets/style-white-v2.css
   Cache-Control: no-cache, must-revalidate
 
@@ -41,4 +53,28 @@
   Cache-Control: no-cache, must-revalidate
 
 /data/fanza-products.json
+  Cache-Control: no-cache, must-revalidate
+
+/data/catalog-search-index.json
+  Cache-Control: no-cache, must-revalidate
+
+/data/catalog-search/*
+  Cache-Control: no-cache, must-revalidate
+
+/data/genre-catalog-index.json
+  Cache-Control: no-cache, must-revalidate
+
+/data/genre-catalog/*
+  Cache-Control: no-cache, must-revalidate
+
+/data/maker-catalog-index.json
+  Cache-Control: no-cache, must-revalidate
+
+/data/maker-catalog/*
+  Cache-Control: no-cache, must-revalidate
+
+/data/actress-catalog-index.json
+  Cache-Control: no-cache, must-revalidate
+
+/data/actress-catalog/*
   Cache-Control: no-cache, must-revalidate
