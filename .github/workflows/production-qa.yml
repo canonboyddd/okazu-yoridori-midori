@@ -20,13 +20,38 @@ jobs:
   qa:
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Wait for Cloudflare propagation
         run: sleep 45
+
+      - name: Sync QA asset versions with the current catalog builder
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          builder_path = Path('.github/workflows/helpers/build_catalog_lookup_index.py')
+          qa_path = Path('scripts/qa_production.py')
+          builder = builder_path.read_text(encoding='utf-8')
+          qa = qa_path.read_text(encoding='utf-8')
+
+          def value(name):
+              m = re.search(rf'^{name}\s*=\s*"([^"]+)"', builder, re.M)
+              if not m:
+                  raise SystemExit(f'Missing {name} in catalog builder')
+              return m.group(1)
+
+          search_version = value('SEARCH_VERSION')
+          v6_version = value('V6_VERSION')
+          qa = re.sub(r'^FACET_ASSET_VERSION\s*=\s*"[^"]+"', f'FACET_ASSET_VERSION = "{search_version}"', qa, flags=re.M)
+          qa = re.sub(r'^V6_ASSET_VERSION\s*=\s*"[^"]+"', f'V6_ASSET_VERSION = "{v6_version}"', qa, flags=re.M)
+          qa_path.write_text(qa, encoding='utf-8')
+          print(f'QA versions synced: search={search_version}, v6={v6_version}')
+          PY
 
       - name: Run production QA with propagation retries
         run: |
@@ -42,3 +67,62 @@ jobs:
           done
           echo "Production QA failed after 4 attempts."
           exit 1
+
+      - name: Audit every main public page type
+        run: |
+          python - <<'PY'
+          import re
+          from urllib.request import Request, urlopen
+
+          BASE = 'https://okazu-yoridori-midori.pages.dev'
+          UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/154 Safari/537.36'
+          paths = [
+              '/', '/ranking/', '/sale/', '/products/', '/search/',
+              '/ranking/actress/', '/ranking/actress/aliases/',
+              '/ranking/genre/', '/ranking/maker/', '/fc2-adult/',
+              '/subscription/', '/reviews/', '/discover/', '/guide/',
+              '/about.html', '/privacy.html',
+          ]
+
+          def get(path):
+              req = Request(BASE + path, headers={'User-Agent': UA, 'Cache-Control': 'no-cache'})
+              with urlopen(req, timeout=35) as res:
+                  return int(res.status), res.read().decode('utf-8', errors='replace')
+
+          failures = []
+          for path in paths:
+              try:
+                  status, body = get(path)
+              except Exception as exc:
+                  failures.append(f'{path}: request failed: {exc}')
+                  continue
+              if status != 200:
+                  failures.append(f'{path}: HTTP {status}')
+              if '<title>' not in body.lower():
+                  failures.append(f'{path}: title missing')
+              if '</html>' not in body.lower():
+                  failures.append(f'{path}: incomplete HTML')
+              print(f'PAGE OK {path} bytes={len(body.encode("utf-8"))}')
+
+          status, sale = get('/sale/')
+          sale_cards = len(re.findall(r'class="fc-card(?:\s|\")', sale))
+          if sale_cards > 120:
+              failures.append(f'/sale/: too many static cards ({sale_cards})')
+
+          _, about = get('/about.html')
+          if 'rel="canonical" href="https://okazu-yoridori-midori.pages.dev/about.html"' not in about:
+              failures.append('/about.html: canonical mismatch')
+          _, privacy = get('/privacy.html')
+          if 'rel="canonical" href="https://okazu-yoridori-midori.pages.dev/privacy.html"' not in privacy:
+              failures.append('/privacy.html: canonical mismatch')
+
+          _, rank_css = get('/assets/rank-contrast-fix.css')
+          compact = re.sub(r'\s+', '', rank_css.lower())
+          for marker in ['.fanza-rank-badge', 'color:#fff!important', '@media(max-width:700px)']:
+              if marker not in compact and marker not in rank_css:
+                  failures.append(f'rank CSS missing readability marker: {marker}')
+
+          if failures:
+              raise SystemExit('Main-page audit failed:\n- ' + '\n- '.join(failures))
+          print(f'Main-page audit passed: {len(paths)} public page types + sale/canonical/rank readability checks')
+          PY
