@@ -2,6 +2,8 @@
   const cfg = window.GA4_CONFIG || {};
   const id = (cfg.measurementId || "").trim();
   const hasGa = /^G-[A-Z0-9]+$/i.test(id);
+  const ATTR_KEY = "ops_origin_context";
+  const ATTR_TTL_MS = 2 * 60 * 60 * 1000;
 
   window.dataLayer = window.dataLayer || [];
   if (!window.gtag) window.gtag = function(){ dataLayer.push(arguments); };
@@ -54,7 +56,7 @@
     const path = location.pathname;
     const ctx = {page_type: "other", actress: "", genre: "", maker: "", product_id: ""};
     let m = path.match(/^\/ranking\/actress\/([^/]+)/);
-    if (m && m[1] !== "aliases") { ctx.page_type = "actress"; ctx.actress = textOf("h1").replace(/\s+(AV作品一覧.*|人気作品.*)$/i, ""); }
+    if (m && m[1] !== "aliases") { ctx.page_type = "actress"; ctx.actress = textOf("h1").replace(/\s+(AV作品一覧.*|人気作品.*|全[0-9,]+作品.*)$/i, ""); }
     m = path.match(/^\/ranking\/genre\/([^/]+)/);
     if (m) { ctx.page_type = "genre"; ctx.genre = textOf("h1").replace(/\s+(人気作品.*|全[0-9,]+作品.*)$/i, ""); }
     m = path.match(/^\/ranking\/maker\/([^/]+)/);
@@ -72,6 +74,45 @@
     else if (path === "/" || path === "") ctx.page_type = "home";
     else if (path.startsWith("/ranking/") && ctx.page_type === "other") ctx.page_type = "ranking";
     return ctx;
+  }
+
+  function rememberOriginContext(ctx) {
+    if (!ctx || ctx.page_type === "product" || ctx.page_type === "other") return;
+    try {
+      sessionStorage.setItem(ATTR_KEY, JSON.stringify({
+        ts: Date.now(),
+        source_page: currentPath(),
+        page_type: ctx.page_type || "",
+        actress: ctx.actress || "",
+        genre: ctx.genre || "",
+        maker: ctx.maker || "",
+      }));
+    } catch (_) {}
+  }
+
+  function readOriginContext() {
+    try {
+      const raw = sessionStorage.getItem(ATTR_KEY);
+      if (!raw) return null;
+      const value = JSON.parse(raw);
+      if (!value || !value.ts || Date.now() - Number(value.ts) > ATTR_TTL_MS) {
+        sessionStorage.removeItem(ATTR_KEY);
+        return null;
+      }
+      return value;
+    } catch (_) { return null; }
+  }
+
+  function attributionParams() {
+    const origin = readOriginContext();
+    if (!origin) return {};
+    return {
+      origin_page_path: origin.source_page || "",
+      origin_page_type: origin.page_type || "",
+      origin_actress: origin.actress || "",
+      origin_genre: origin.genre || "",
+      origin_maker: origin.maker || "",
+    };
   }
 
   function sendGa(name, params) {
@@ -112,7 +153,8 @@
     sendOps(name, extra || {});
   };
 
-  sendOps("page_view", {});
+  const initialCtx = pageContext();
+  sendOps("page_view", initialCtx.page_type === "product" ? attributionParams() : {});
 
   let scrolled90 = false;
   window.addEventListener("scroll", function () {
@@ -155,7 +197,7 @@
 
     if (host.includes("dmm.co.jp") || host.includes("fanza.co.jp") || host.includes("al.fanza.co.jp") || host.includes("affiliate.dmm.com")) {
       const ctx = pageContext();
-      const extra = Object.assign({}, params, ctx, {
+      const extra = Object.assign({}, params, ctx, attributionParams(), {
         outbound_domain: host,
         program: "FANZA",
         placement: a.dataset.affiliateTarget || text,
@@ -172,8 +214,10 @@
       else if (path.startsWith("/ranking/")) window.trackOpsEvent("ranking_click", internalExtra);
       else if (path.startsWith("/reviews/")) window.trackOpsEvent("review_click", internalExtra);
       else if (path.startsWith("/subscription/")) window.trackOpsEvent("subscription_click", internalExtra);
-      else if (path.startsWith("/products/")) window.trackOpsEvent("product_open", internalExtra);
-      else if (a.classList.contains("cta") || a.classList.contains("money-card") || a.classList.contains("intent-card") || a.classList.contains("mini-card")) {
+      else if (path.startsWith("/products/")) {
+        rememberOriginContext(pageContext());
+        window.trackOpsEvent("product_open", internalExtra);
+      } else if (a.classList.contains("cta") || a.classList.contains("money-card") || a.classList.contains("intent-card") || a.classList.contains("mini-card")) {
         window.trackOpsEvent("internal_cta_click", internalExtra);
       }
     }
