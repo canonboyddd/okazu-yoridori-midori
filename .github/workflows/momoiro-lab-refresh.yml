@@ -1,0 +1,56 @@
+name: Refresh 桃色ラボ FANZA works
+
+on:
+  schedule:
+    # 20:00 UTC = 05:00 JST
+    - cron: "0 20 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/momoiro-lab-refresh.yml'
+      - 'scripts/build_momoiro_lab_works.py'
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: momoiro-lab-refresh
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build 桃色ラボ works page from FANZA API
+        env:
+          DMM_API_ID: ${{ secrets.DMM_API_ID }}
+          DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
+          OWN_DOUJIN_CIRCLE_NAME: "桃色ラボ"
+        run: python scripts/build_momoiro_lab_works.py
+
+      - name: Verify generated page
+        run: |
+          test -s public/momoiro-lab/index.html
+          test -s public/data/momoiro-lab-works.json
+          grep -q '桃色ラボ' public/momoiro-lab/index.html
+          python -c 'import json; d=json.load(open("public/data/momoiro-lab-works.json", encoding="utf-8")); assert d.get("circle") == "桃色ラボ"; assert isinstance(d.get("works"), list)'
+
+      - name: Commit refreshed public files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/momoiro-lab/index.html public/data/momoiro-lab-works.json public/index.html public/sitemap.xml
+          if git diff --cached --quiet; then
+            echo "No 桃色ラボ changes to commit."
+            exit 0
+          fi
+          git commit -m "Refresh 桃色ラボ FANZA works"
+          git push origin HEAD:main
