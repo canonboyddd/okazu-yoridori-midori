@@ -32,7 +32,7 @@ jobs:
         run: |
           git diff --name-only HEAD^ HEAD > /tmp/current-change.txt || true
           cat /tmp/current-change.txt
-          if grep -Eq '^(config/actress_aliases\.json|scripts/(validate_actress_alias_db|merge_actress_aliases|enhance_actress_alias_pages|enhance_product_pages_v2|enhance_entity_seo_v2|build_fanza_api|build_large_taxonomy_directory|rebuild_actress_directory_balanced|build_full_catalog_upgrade|build_dmm_popular_actresses|enforce_cloudflare_pages_limit)\.py|\.github/workflows/helpers/(patch_full_catalog_comments|enhance_product_descriptions)\.py)$' /tmp/current-change.txt; then
+          if grep -Eq '^(config/actress_aliases\.json|scripts/(validate_actress_alias_db|merge_actress_aliases|enhance_actress_alias_pages|enhance_product_pages_v2|enhance_entity_seo_v2|build_fanza_api|build_large_taxonomy_directory|rebuild_actress_directory_balanced|build_full_catalog_upgrade|build_dmm_popular_actresses|enforce_cloudflare_pages_limit|optimize_sale_page|fix_actress_catalog_index)\.py|\.github/workflows/helpers/(patch_full_catalog_comments|enhance_product_descriptions)\.py)$' /tmp/current-change.txt; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
             echo "A full FANZA refresh owns this change; fast deploy will not race it."
           else
@@ -79,7 +79,7 @@ jobs:
         run: |
           git diff --name-only "$SNAPSHOT_SHA" "$GITHUB_SHA" > /tmp/since-snapshot.txt
           cat /tmp/since-snapshot.txt
-          if grep -Eq '^(config/actress_aliases\.json|scripts/(validate_actress_alias_db|merge_actress_aliases|enhance_actress_alias_pages|enhance_product_pages_v2|enhance_entity_seo_v2|build_fanza_api|build_large_taxonomy_directory|rebuild_actress_directory_balanced|build_full_catalog_upgrade|build_dmm_popular_actresses|enforce_cloudflare_pages_limit)\.py|\.github/workflows/helpers/(patch_full_catalog_comments|enhance_product_descriptions)\.py)$' /tmp/since-snapshot.txt; then
+          if grep -Eq '^(config/actress_aliases\.json|scripts/(validate_actress_alias_db|merge_actress_aliases|enhance_actress_alias_pages|enhance_product_pages_v2|enhance_entity_seo_v2|build_fanza_api|build_large_taxonomy_directory|rebuild_actress_directory_balanced|build_full_catalog_upgrade|build_dmm_popular_actresses|enforce_cloudflare_pages_limit|optimize_sale_page|fix_actress_catalog_index)\.py|\.github/workflows/helpers/(patch_full_catalog_comments|enhance_product_descriptions)\.py)$' /tmp/since-snapshot.txt; then
             echo "Full-data changes exist after the latest production snapshot. Waiting for the next Daily FANZA snapshot is required."
             exit 1
           fi
@@ -144,6 +144,10 @@ jobs:
         if: steps.mode.outputs.skip != 'true'
         run: python .github/workflows/helpers/build_catalog_lookup_index.py
 
+      - name: Normalize actress catalog index key
+        if: steps.mode.outputs.skip != 'true'
+        run: python scripts/fix_actress_catalog_index.py
+
       - name: Shard oversized entity catalogs for Cloudflare Pages
         if: steps.mode.outputs.skip != 'true'
         run: python .github/workflows/helpers/shard_large_entity_catalogs.py
@@ -165,6 +169,7 @@ jobs:
           FILE_COUNT="$(find public -type f | wc -l | tr -d ' ')"
           echo "Fast deploy file count: $FILE_COUNT"
           test "$FILE_COUNT" -le 20000
+          python -c 'import json; d=json.load(open("public/data/actress-catalog-index.json", encoding="utf-8")); assert isinstance(d.get("actresses"), list) and d["actresses"]; assert "actresss" not in d'
 
       - name: Deploy
         if: steps.mode.outputs.skip != 'true'
