@@ -22,7 +22,17 @@ def fetch(url: str, user_agent: str = DESKTOP_UA, retries: int = 6) -> tuple[int
         try:
             with urlopen(req, timeout=35) as res:
                 return int(res.status), res.read().decode("utf-8", errors="replace")
-        except (HTTPError, URLError, TimeoutError) as exc:
+        except HTTPError as exc:
+            last = exc
+            if int(exc.code) in (404, 410):
+                try:
+                    body = exc.read().decode("utf-8", errors="replace")
+                except Exception:
+                    body = ""
+                return int(exc.code), body
+            if attempt + 1 < retries:
+                time.sleep(4 + attempt * 2)
+        except (URLError, TimeoutError) as exc:
             last = exc
             if attempt + 1 < retries:
                 time.sleep(4 + attempt * 2)
