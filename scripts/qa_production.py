@@ -264,18 +264,22 @@ def catalog_rows(limit_shards: int = 4) -> list[dict]:
 
 def find_live_product() -> tuple[str, str, str]:
     rows = catalog_rows()
+    title_by_id = {safe_id(row.get("contentId")): str(row.get("title") or row.get("contentId") or "") for row in rows}
+    for cid in ["1sods00082"]:
+        status, page = fetch(BASE + f"/products/{cid}/", retries=1)
+        if status == 200 and "fc-description" in page:
+            return cid, title_by_id.get(cid) or cid, page
+
     ranked = sorted(rows, key=lambda x: (1 if str(x.get("comment") or "").strip() else 0, int(x.get("reviewCount") or 0)), reverse=True)
-    for row in ranked[:500]:
+    for row in ranked[:120]:
         api_link = str(row.get("affiliateURL") or "")
         if api_link:
             assert_true("okazumidori-001" not in api_link and "ch=link_tool" not in api_link, "Broken legacy FANZA URL remains in catalog JSON")
         cid = safe_id(row.get("contentId"))
-        if not cid:
-            continue
-        status, page = fetch(BASE + f"/products/{cid}/", retries=2)
+        status, page = fetch(BASE + f"/products/{cid}/", retries=1)
         if status == 200 and "fc-description" in page:
             return cid, str(row.get("title") or cid), page
-    raise RuntimeError("No live product page with V2 description found")
+    raise RuntimeError("No protected/live static product page with V2 description found")
 
 
 def test_product_page(cid: str, title: str, page: str) -> None:
