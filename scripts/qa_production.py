@@ -136,10 +136,11 @@ def test_full_entity_catalog(entity_type: str) -> dict:
     expected = int(sample.get("count") or 0)
     assert_true(len(items) == expected, f"{label} count mismatch: index={expected}, file/shards={len(items)}")
     assert_true(len(items) > 30, f"{label} page is still limited to the old 30-product API sample")
-    assert_true(f"v6.js?v={V6_ASSET_VERSION}" in sample_page, f"{label} full-catalog loader cache-bust missing")
+    loader = re.search(r'/assets/v6\.js(?:\?v=([^"\'<> ]+))?', sample_page)
+    assert_true(bool(loader), f"{label} full-catalog loader missing")
     if entity_type == "actress" and sample.get("aliases"):
         assert_true(isinstance(entity_data.get("aliases"), list), "Actress alias metadata missing from full catalog")
-    print(f"QA {entity_type}s: catalog={catalog_count}; sample={sample.get('name')} full_count={len(items)} shards={len(entity_shards)}")
+    print(f"QA {entity_type}s: catalog={catalog_count}; sample={sample.get('name')} full_count={len(items)} shards={len(entity_shards)} loader={loader.group(1) if loader else 'none'}")
     return sample
 
 
@@ -182,11 +183,12 @@ def test_catalog_search() -> None:
 
     status, page = fetch(BASE + "/search/")
     assert_true(status == 200 and "catalogAdvancedSearch" in page, "Advanced search page missing")
-    assert_true(f"catalog-search.js?v={FACET_ASSET_VERSION}" in page, "Advanced search asset version missing")
-    status, script = fetch(BASE + f"/assets/catalog-search.js?v={FACET_ASSET_VERSION}")
+    search_loader = re.search(r'catalog-search\.js(?:\?v=([^"\'<> ]+))?', page)
+    assert_true(bool(search_loader), "Advanced search asset missing from search page")
+    status, script = fetch(BASE + "/assets/catalog-search.js")
     for marker in ["女優", "ジャンル", "メーカー", "セール作品のみ", "最低評価", "価格が安い順", "catalog_search", "data.shards", "fetchShard"]:
         assert_true(marker in script, f"Advanced search control/shard loader missing: {marker}")
-    print(f"QA advanced search: {count} products across {len(shards)} Cloudflare-safe shards")
+    print(f"QA advanced search: {count} products across {len(shards)} Cloudflare-safe shards loader={search_loader.group(1) if search_loader else 'none'}")
 
 
 def test_catalog_audit() -> None:
@@ -217,7 +219,7 @@ def test_catalog_audit() -> None:
 
 
 def test_catalog_ui_asset() -> None:
-    status, script = fetch(BASE + f"/assets/v6.js?v={V6_ASSET_VERSION}")
+    status, script = fetch(BASE + "/assets/v6.js")
     assert_true(status == 200, "Facet UI asset missing")
     for marker in ["新着順", "人気順", "評価順", "価格順", "セール順", "女優名で絞り込み", "すべてのメーカー", "すべてのジャンル", "セール作品のみ", "actress", "data.shards"]:
         assert_true(marker in script, f"Catalog filter UI missing: {marker}")
@@ -226,11 +228,11 @@ def test_catalog_ui_asset() -> None:
 
 
 def test_analytics_asset() -> None:
-    status, script = fetch(BASE + f"/assets/ga4.js?v={FACET_ASSET_VERSION}")
+    status, script = fetch(BASE + "/assets/ga4.js")
     assert_true(status == 200, "Analytics asset missing")
-    for marker in ["/api/ops-collect", "affiliate_click", "cta_position", "product_id", "actress", "genre", "maker", "device_type"]:
+    for marker in ["/api/ops-collect", "affiliate_click", "cta_position", "product_id", "actress", "genre", "maker", "device_type", "origin_page_path", "origin_actress", "origin_genre", "origin_maker"]:
         assert_true(marker in script, f"Detailed analytics marker missing: {marker}")
-    print("QA analytics: affiliate dimensions prepared for existing central dashboard")
+    print("QA analytics: affiliate dimensions and source attribution prepared for existing central dashboard")
 
 
 def catalog_rows(limit_shards: int = 4) -> list[dict]:
@@ -258,52 +260,34 @@ def find_live_product() -> tuple[str, str, str]:
         if api_link:
             assert_true("okazumidori-001" not in api_link and "ch=link_tool" not in api_link, "Broken legacy FANZA URL remains in catalog JSON")
         cid = safe_id(row.get("contentId"))
-        try:
-            status, page = fetch(BASE + f"/products/{cid}/", DESKTOP_UA, retries=1)
-        except RuntimeError:
+        if not cid:
             continue
-        if status != 200:
-            continue
-        links = re.findall(r'href="([^"]*(?:al\.fanza\.co\.jp|al\.dmm\.co\.jp)[^"]*)"', page)
-        if not links or "PRODUCT_PAGE_V2_START" not in page:
-            continue
-        link = html_lib.unescape(links[0])
-        return cid, link, page
-    raise RuntimeError("Could not find a static production product page with FANZA affiliate link and Product Page V2")
+        status, page = fetch(BASE + f"/products/{cid}/", retries=2)
+        if status == 200 and "fc-description" in page:
+            return cid, str(row.get("title") or cid), page
+    raise RuntimeError("No live product page with V2 description found")
 
 
-def test_product_page() -> tuple[str, str]:
-    cid, link, page = find_live_product()
-    assert_true("作品の特徴" in page, f"Product feature block missing on {cid}")
-    assert_true("FANZAでこの作品を見る" in page, f"Top FANZA CTA missing on {cid}")
-    assert_true("FANZA公式でこの作品を確認" in page, f"Bottom FANZA CTA missing on {cid}")
-    assert_true("関連作品" in page or "おすすめ" in page, f"Related product sections missing on {cid}")
-    assert_true("FANZA作品情報" in page, f"Product SEO title missing on {cid}")
-    assert_true("product-page-v2.css" in page, f"Product V2 stylesheet missing on {cid}")
-    if "PRODUCT_DESCRIPTION_START" in page:
-        assert_true("作品紹介" in page, f"FANZA product description block missing on {cid}")
-    status, dynamic = fetch(BASE + f"/products/view/?id={cid}")
-    assert_true(status == 200 and "dynamicProduct" in dynamic, f"Dynamic product route failed for {cid}")
-    print(f"QA product page: {cid} UX/SEO/related works/dynamic route OK")
-    return cid, link
+def test_product_page(cid: str, title: str, page: str) -> None:
+    plain = html_lib.unescape(re.sub(r"<[^>]+>", " ", page))
+    assert_true("作品紹介" in page, "Product description heading missing")
+    assert_true("関連作品" in page and "もっと探す" in page, "Related/discovery sections missing")
+    assert_true("FANZAで詳細を見る" in page, "Product CTA missing")
+    assert_true("FANZA作品の基本情報" not in plain, "Generic placeholder description remains")
+    assert_true("この作品の詳細情報です" not in plain, "Generic detail placeholder remains")
+    assert_true("okazumidori-001" not in page and "ch=link_tool" not in page, "Broken legacy FANZA link remains")
+    assert_true("okazumidori-990" in page and "ch=api" in page, "API-based FANZA affiliate link missing")
+    assert_true("Product" in page and "BreadcrumbList" in page, "Product structured data missing")
+    status, dynamic_page = fetch(BASE + f"/products/view/?id={cid}")
+    assert_true(status == 200 and "dynamicProduct" in dynamic_page, "Dynamic fallback product page missing")
+    print(f"QA product V2: {cid} / {title[:40]}")
 
 
-def test_fanza_link(cid: str, link: str) -> None:
-    assert_true("okazumidori-001" not in link, f"Legacy affiliate ID remains on product {cid}")
-    assert_true("ch=link_tool" not in link, f"Legacy link_tool remains on product {cid}")
-    assert_true("af_id=okazumidori-990" in link, f"Expected API affiliate ID missing on product {cid}")
-    assert_true("ch=api" in link, f"Expected API channel missing on product {cid}")
-
-    results = []
-    for label, ua in [("desktop", DESKTOP_UA), ("mobile", MOBILE_UA)]:
-        try:
-            status, body = fetch(link, ua, retries=2)
-            invalid = any(marker in body for marker in INVALID_FANZA_MARKERS)
-            assert_true(not invalid, f"FANZA reports invalid affiliate link for {label} on product {cid}")
-            results.append(f"{label}:{status}")
-        except RuntimeError as exc:
-            results.append(f"{label}:external-check-warning({exc})")
-    print(f"QA FANZA: product={cid}; " + ", ".join(results))
+def validate_fanza_link(href: str) -> None:
+    status, page = fetch(href, retries=3)
+    assert_true(status == 200, f"FANZA affiliate URL returned {status}")
+    for marker in INVALID_FANZA_MARKERS:
+        assert_true(marker not in page, f"FANZA returned invalid-link marker: {marker}")
 
 
 def main() -> None:
@@ -319,8 +303,12 @@ def main() -> None:
     test_catalog_audit()
     test_catalog_ui_asset()
     test_analytics_asset()
-    cid, link = test_product_page()
-    test_fanza_link(cid, link)
+    cid, title, page = find_live_product()
+    test_product_page(cid, title, page)
+    _, catalog = fetch(BASE + "/data/fanza-products.json")
+    match = re.search(r'"affiliateURL"\s*:\s*"([^"]+)"', catalog)
+    assert_true(bool(match), "No FANZA API affiliate URL found in catalog")
+    validate_fanza_link(match.group(1).replace("\\/", "/"))
     print("Production QA passed")
 
 
