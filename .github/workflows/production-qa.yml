@@ -57,7 +57,7 @@ jobs:
         run: |
           for attempt in 1 2 3 4; do
             echo "Production QA attempt ${attempt}/4"
-            if python scripts/qa_production.py; then
+            if python scripts/run_production_qa.py; then
               exit 0
             fi
             if [ "$attempt" -lt 4 ]; then
