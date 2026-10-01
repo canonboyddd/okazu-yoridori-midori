@@ -23,6 +23,7 @@ on:
       - 'scripts/build_large_taxonomy_directory.py'
       - 'scripts/rebuild_actress_directory_balanced.py'
       - 'scripts/build_full_catalog_upgrade.py'
+      - 'scripts/enrich_missing_actresses.py'
       - 'scripts/build_dmm_popular_actresses.py'
       - 'scripts/enforce_cloudflare_pages_limit.py'
       - 'scripts/inject_colorful_readability.py'
@@ -84,6 +85,14 @@ jobs:
           DMM_FULL_CATALOG_MAX_PAGES: "0"
           MAX_INDEXABLE_FILES: "10000"
         run: python scripts/build_full_catalog_upgrade.py
+
+      - name: Enrich missing actress metadata
+        env:
+          DMM_API_ID: ${{ secrets.DMM_API_ID }}
+          DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
+          DMM_MISSING_ACTRESS_API_LIMIT: "1500"
+          DMM_TITLE_ACTRESS_MIN_LEN: "2"
+        run: python scripts/enrich_missing_actresses.py
 
       - name: Build DMM popularity-first actress ranking and 50-on data
         env:
@@ -168,6 +177,7 @@ jobs:
       - name: Verify production build before deploy
         run: |
           test -s public/data/full-catalog-manifest.json
+          test -s public/data/missing-actress-enrichment.json
           test -s public/data/actress-alias-groups.json
           test -s public/data/actress-profile-summary.json
           test -s public/data/actress-catalog-index.json
@@ -176,6 +186,7 @@ jobs:
           test -s public/assets/actress-profile-v2.css
           test -s public/assets/rank-contrast-fix.css
           python -c 'import json; d=json.load(open("public/data/actress-catalog-index.json", encoding="utf-8")); assert isinstance(d.get("actresses"), list) and d["actresses"]; assert "actresss" not in d'
+          python -c 'import json; r=json.load(open("public/data/missing-actress-enrichment.json", encoding="utf-8")); assert r["catalogCount"] >= 40000; assert r["afterMissingActress"] <= r["beforeMissingActress"]'
           SALE_CARDS="$(grep -o 'class="fc-card"' public/sale/index.html | wc -l | tr -d ' ')"
           echo "Sale page visible cards: $SALE_CARDS"
           test "$SALE_CARDS" -le 120
