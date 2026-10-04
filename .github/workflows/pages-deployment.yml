@@ -156,6 +156,10 @@ jobs:
         if: steps.mode.outputs.skip != 'true'
         run: python scripts/inject_colorful_readability.py
 
+      - name: Final visitor-facing copy audit
+        if: steps.mode.outputs.skip != 'true'
+        run: python scripts/remove_internal_operator_copy.py
+
       - name: Enforce Cloudflare Pages file limit
         if: steps.mode.outputs.skip != 'true'
         env:
