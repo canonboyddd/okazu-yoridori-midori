@@ -91,6 +91,9 @@ jobs:
           python .github/workflows/helpers/shard_large_entity_catalogs.py
           python scripts/inject_colorful_readability.py
 
+      - name: Final visitor-facing copy audit
+        run: python scripts/remove_internal_operator_copy.py
+
       - name: Enforce Cloudflare Pages file limit
         env:
           CLOUDFLARE_PAGES_TARGET_FILES: "19000"
