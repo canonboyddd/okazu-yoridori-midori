@@ -19,3 +19,4 @@ const forbidden=['月100万円を狙うため','収益ページへ自然につ�
 for(const term of forbidden) if(s.includes(term)) throw new Error(`operator-only public copy remains: ${term}`);
 fs.writeFileSync(file,s);
 console.log('Public homepage copy aligned with user-facing behavior.');
+// production deploy trigger: 2026-10-05
