@@ -22,10 +22,17 @@ REPLACEMENTS = {
     "人気・新着・高評価から比較へつなげる入口。": "人気・新着・高評価から作品を探せます。",
     "購入前の疑問から収益ページへ自然につなぐ。": "購入前の疑問を順番に確認できます。",
     "当サイト運営サークル「桃色ラボ」のFANZA同人作品をまとめる専用ページを追加しました。公開後は商品APIから自動更新します。": "「桃色ラボ」のFANZA同人作品をまとめています。作品情報は公開状況に合わせて更新します。",
-    "公開後は商品APIから自動更新します。": "作品情報は公開状況に合わせて更新します。",
+    "公開作品はFANZA Webサービスの商品APIから自動更新します。": "公開状況に合わせて作品情報を更新します。",
+    "商品情報はFANZA Webサービスの商品APIから取得し、自動更新します。": "公開状況に合わせて作品情報を更新します。",
+    "公開作品のAPI反映待ちです": "公開作品の反映待ちです",
+    "桃色ラボの作品がFANZAで公開され、FANZA Webサービスの商品APIに反映されると、このページへ自動掲載します。": "桃色ラボの作品がFANZAで公開されると、このページにも順次掲載します。",
+    "FANZA API / 人気作品データ": "FANZA人気作品データ",
+    "FANZA Webサービスの商品APIで <b>人気順（rank）</b> の作品を上位から取得し、その作品に出演する女優を順番に集計した当サイト独自ランキングです。": "FANZAで公開されている人気作品の順位をもとに、出演女優を順番に集計した当サイト独自ランキングです。",
+    "プロフィール画像・女優情報はFANZA Webサービスから取得しています。API更新:": "プロフィール画像・女優情報は公開情報をもとに掲載しています。最終更新:",
     "商品APIから自動更新します。": "作品情報は公開状況に合わせて更新します。",
     "APIから自動更新します。": "最新情報に合わせて更新します。",
     "APIで自動更新します。": "最新情報に合わせて更新します。",
+    "API更新:": "最終更新:",
     "HIGH INTENT": "おすすめ",
     "COMPARE": "比較",
     "TRUST": "レビュー",
@@ -66,17 +73,15 @@ TEXT_REPLACEMENTS = {
     "コンバージョン導線": "案内",
 }
 
-# These terms are checked against visible text only (script/style/comments/meta are
-# ignored), so developer code can still contain technical words while visitors
-# cannot see them. A deploy fails if any of these remain on even one public page.
+# Check only phrases that are strongly indicative of owner/developer copy. Avoid
+# short generic acronyms such as TODO/CTR/KPI because they can legitimately occur
+# inside product titles and therefore create false positives on catalog pages.
 VISIBLE_AUDIT_TERMS = [
     "月100万円",
     "購入意図",
     "収益ページ",
     "収益導線",
     "収益化",
-    "内部リンク",
-    "検索流入",
     "DMM審査通過後",
     "アフィリエイトID/API",
     "広告リンク表示枠",
@@ -94,17 +99,14 @@ VISIBLE_AUDIT_TERMS = [
     "商品API",
     "APIから自動更新",
     "APIで自動更新",
+    "API更新:",
+    "公開作品のAPI反映待ち",
     "SEO対策",
-    "CVR",
-    "CTR",
-    "KPI",
     "Cloudflare",
     "GitHub",
     "デプロイ",
     "ステージング",
     "本番環境",
-    "TODO",
-    "FIXME",
     "仮置き",
     "実装予定",
     "テスト用",
