@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html as html_lib
 import re
 import subprocess
 import sys
@@ -7,9 +8,9 @@ from pathlib import Path
 
 ROOT = Path("public")
 
-# Phrases that are clearly implementation / monetization notes for the site owner,
-# not useful copy for normal visitors. The script checks each public HTML document
-# one by one on every deploy so generated pages are cleaned too.
+# Public pages must read as visitor-facing pages. These replacements remove or
+# rewrite implementation, SEO and monetization notes that were useful during
+# development but should never be shown to normal visitors.
 REPLACEMENTS = {
     "月100万円を狙うためのサイト導線": "迷わず選ぶための流れ",
     "検索流入を「情報を知りたい人」だけで終わらせず、比較・ランキング・セール・レビューへ内部リンクして、購入判断まで迷わない構造にしています。": "気になる作品やサービスを探し、条件を比べ、最後に公式ページで最新情報を確認しやすい順番に整理しています。",
@@ -20,6 +21,11 @@ REPLACEMENTS = {
     "いま買う理由がある人を集める更新型ページ。": "現在のセール・クーポン情報を確認できます。",
     "人気・新着・高評価から比較へつなげる入口。": "人気・新着・高評価から作品を探せます。",
     "購入前の疑問から収益ページへ自然につなぐ。": "購入前の疑問を順番に確認できます。",
+    "当サイト運営サークル「桃色ラボ」のFANZA同人作品をまとめる専用ページを追加しました。公開後は商品APIから自動更新します。": "「桃色ラボ」のFANZA同人作品をまとめています。作品情報は公開状況に合わせて更新します。",
+    "公開後は商品APIから自動更新します。": "作品情報は公開状況に合わせて更新します。",
+    "商品APIから自動更新します。": "作品情報は公開状況に合わせて更新します。",
+    "APIから自動更新します。": "最新情報に合わせて更新します。",
+    "APIで自動更新します。": "最新情報に合わせて更新します。",
     "HIGH INTENT": "おすすめ",
     "COMPARE": "比較",
     "TRUST": "レビュー",
@@ -27,7 +33,8 @@ REPLACEMENTS = {
     "BEGINNER": "はじめての方へ",
 }
 
-# Exact owner-facing blocks already found on the live site.
+# Exact owner-facing blocks found in public output. Remove the whole block when
+# simply rewriting it would still expose implementation instructions.
 OWNER_BLOCKS = [
     re.compile(
         r'<h2>初心者向けの導線</h2>\s*<p>情報系の記事から、比較・ランキング・セールなど購入意図の高いページへ自然につなげます。単発記事だけで終わらず、読者が次に確認するページを必ず用意する構造です。</p>',
@@ -37,41 +44,80 @@ OWNER_BLOCKS = [
         r'<div class="affiliate-slot">\s*<strong>広告リンク表示枠</strong>\s*<p>DMM審査通過後にアフィリエイトID/APIを設定すると、この位置に公式商品・キャンペーン導線を表示する設計です。</p>\s*</div>',
         re.S,
     ),
+    re.compile(
+        r'<(?:section|div)[^>]*>\s*<(?:h2|h3)[^>]*>(?:運営者向け|管理者向け|サイト運営者向け)[^<]*</(?:h2|h3)>.*?</(?:section|div)>',
+        re.S | re.I,
+    ),
 ]
 
-# Conservative public-copy cleanup for strong internal terms that should never be
-# shown as instructions about monetization/SEO on this consumer-facing site.
 TEXT_REPLACEMENTS = {
     "購入意図の高いページ": "比較・ランキング・セールページ",
     "収益ページ": "関連ページ",
     "収益導線": "案内",
+    "広告導線": "公式ページへの案内",
+    "商品導線": "作品案内",
     "内部リンクして": "関連ページで",
+    "内部リンクを": "関連ページへのリンクを",
     "単発記事だけで終わらず": "関連情報も確認できるようにし",
     "DMM審査通過後": "",
     "アフィリエイトID/API": "必要な設定",
     "広告リンク表示枠": "",
+    "検索流入": "検索からの訪問",
+    "コンバージョン導線": "案内",
 }
 
-# Terms that indicate owner-only copy may still remain after cleanup.
-# These are reported page-by-page in the Action log for QA.
-AUDIT_TERMS = [
+# These terms are checked against visible text only (script/style/comments/meta are
+# ignored), so developer code can still contain technical words while visitors
+# cannot see them. A deploy fails if any of these remain on even one public page.
+VISIBLE_AUDIT_TERMS = [
     "月100万円",
     "購入意図",
     "収益ページ",
     "収益導線",
-    "内部リンクして",
-    "単発記事だけで終わらず",
+    "収益化",
+    "内部リンク",
+    "検索流入",
     "DMM審査通過後",
     "アフィリエイトID/API",
     "広告リンク表示枠",
-    "<b>集客</b>",
-    "<b>成約</b>",
+    "広告導線",
+    "商品導線",
+    "コンバージョン導線",
+    "サイト運営者向け",
+    "運営者向け",
+    "管理者向け",
+    "管理画面",
+    "商品API",
+    "APIから自動更新",
+    "APIで自動更新",
+    "SEO対策",
+    "CVR",
+    "CTR",
+    "KPI",
+    "Cloudflare",
+    "GitHub",
+    "デプロイ",
+    "ステージング",
+    "本番環境",
+    "TODO",
+    "FIXME",
+    "仮置き",
+    "実装予定",
+    "テスト用",
 ]
 
 
 def looks_like_html(text: str) -> bool:
-    head = text[:600].lower()
+    head = text[:800].lower()
     return "<html" in head or "<!doctype html" in head
+
+
+def visible_text(text: str) -> str:
+    text = re.sub(r"<!--.*?-->", " ", text, flags=re.S)
+    text = re.sub(r"<(script|style|noscript)\b[^>]*>.*?</\1>", " ", text, flags=re.S | re.I)
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = html_lib.unescape(text)
+    return re.sub(r"\s+", " ", text).strip()
 
 
 def patch(path: Path) -> tuple[bool, list[str]]:
@@ -93,19 +139,21 @@ def patch(path: Path) -> tuple[bool, list[str]]:
     for old, new in TEXT_REPLACEMENTS.items():
         text = text.replace(old, new)
 
-    # Remove empty headings/paragraphs left by any placeholder cleanup.
+    # Remove empty elements left by cleanup.
     text = re.sub(r'<h[1-6][^>]*>\s*</h[1-6]>', '', text, flags=re.I)
     text = re.sub(r'<p[^>]*>\s*</p>', '', text, flags=re.I)
+    text = re.sub(r'<div[^>]*>\s*</div>', '', text, flags=re.I)
 
     if text != before:
         path.write_text(text, encoding="utf-8")
 
-    remaining = [term for term in AUDIT_TERMS if term in text]
+    visible = visible_text(text)
+    remaining = [term for term in VISIBLE_AUDIT_TERMS if term in visible]
     return text != before, remaining
 
 
 def main() -> None:
-    # Ensure every genre/category reachable from the catalog has a real product page.
+    # Keep generated genre/category pages present before auditing every HTML file.
     helper = Path(".github/workflows/helpers/ensure_genre_category_pages.py")
     if helper.exists():
         subprocess.run([sys.executable, str(helper)], check=True)
@@ -117,19 +165,18 @@ def main() -> None:
     for path in ROOT.rglob("*"):
         if not path.is_file():
             continue
-        # The repo contains both .html pages and extensionless HTML routes.
+        # The repository contains both .html files and extensionless HTML routes.
         if path.suffix.lower() not in {"", ".html"}:
             continue
-        did_change, remaining = patch(path)
-        # patch() returns false for non-HTML files, so count only files we can
-        # cheaply identify as HTML here.
         try:
-            sample = path.read_text(encoding="utf-8")[:600]
+            sample = path.read_text(encoding="utf-8")
         except (UnicodeDecodeError, OSError):
             continue
         if not looks_like_html(sample):
             continue
+
         checked += 1
+        did_change, remaining = patch(path)
         if did_change:
             changed += 1
         if remaining:
@@ -137,11 +184,13 @@ def main() -> None:
 
     print(f"Public-copy audit: checked={checked} changed={changed}")
     if remaining_pages:
-        print("WARNING: owner-facing terms still found:")
-        for rel, terms in remaining_pages[:100]:
+        print("ERROR: owner/developer-facing visible text still exists:")
+        for rel, terms in remaining_pages[:200]:
             print(f"  {rel}: {', '.join(terms)}")
+        if len(remaining_pages) > 200:
+            print(f"  ... plus {len(remaining_pages) - 200} more pages")
         raise SystemExit(1)
-    print("Public-copy audit passed: no owner-only terms remain.")
+    print("Public-copy audit passed: every public HTML page is visitor-facing.")
 
 
 if __name__ == "__main__":
