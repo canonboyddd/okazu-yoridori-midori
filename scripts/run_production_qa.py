@@ -30,14 +30,21 @@ def test_dynamic_product_page(cid: str, title: str, shell: str) -> None:
     for marker in [
         "/data/catalog-lookup.json",
         "/data/catalog/catalog-",
+        "/data/actress-catalog/",
+        "/data/maker-catalog/",
+        "/data/genre-catalog/",
         "affiliateURL",
         "FANZAでこの作品を見る",
         "FANZA公式で確認",
         "actressEntities",
+        "makerEntities",
         "genreEntities",
         "commentBlock",
         "fc-description",
-        'data-affiliate-target="product"',
+        "作品データの要点",
+        "renderRelated",
+        'data-affiliate-target="product-top"',
+        'data-affiliate-target="product-bottom"',
     ]:
         qa.assert_true(marker in loader, f"Dynamic product loader capability missing: {marker}")
 
@@ -63,7 +70,8 @@ def test_dynamic_product_page(cid: str, title: str, shell: str) -> None:
     comment_count = sum(1 for x in sample_rows if str(x.get("comment") or "").strip())
     print(
         f"QA dynamic product: {cid} / {title[:40]} / shard={shard_no}; "
-        f"comment_sample_coverage={comment_count}/{len(sample_rows)}; comment rendering supported by loader"
+        f"comment_sample_coverage={comment_count}/{len(sample_rows)}; "
+        "factual summary + related actress/maker/genre sections supported by loader"
     )
 
 
