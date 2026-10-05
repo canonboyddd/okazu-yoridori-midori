@@ -5,6 +5,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+from urllib.parse import quote
 
 ROOT = Path("public")
 
@@ -33,6 +34,12 @@ REPLACEMENTS = {
     "APIから自動更新します。": "最新情報に合わせて更新します。",
     "APIで自動更新します。": "最新情報に合わせて更新します。",
     "API更新:": "最終更新:",
+    "当サイトはDMMアフィリエイトへ申請中です。承認後、成果報酬リンクを掲載する場合は分かるように表示します。": "当サイトはDMMアフィリエイトに参加しており、成果報酬リンクを掲載しています。広告・PRであることが分かるよう表示します。",
+    "当サイトはアフィリエイトプログラムへの参加を予定しています。審査通過後、広告・成果報酬リンクを掲載する場合は分かるように表示します。": "当サイトはアフィリエイトプログラムに参加しており、成果報酬リンクを掲載しています。広告・PRであることが分かるよう表示します。",
+    "<h2>今後増やす入口</h2><p>シリーズ別、メーカー別、新着、人気、高評価、セール対象など、検索意図ごとの入口を増やし、同じ商品へ複数の検索ルートから到達できる構造にします。</p>": "<h2>作品を探す入口</h2><p>5万作品検索では、作品名・女優・ジャンル・メーカー・価格・評価・セール条件を組み合わせて絞り込めます。</p><p><a class=\"btn\" href=\"/search/\">5万作品検索を開く →</a></p>",
+    "最初から細かく絞りすぎず、1条件ずつ追加して候補を3〜5件まで減らす設計にします。": "最初から細かく絞りすぎず、1条件ずつ追加して候補を3〜5件まで減らすと比較しやすくなります。",
+    "このページも承認後は現在のセール状況を上部に固定表示する設計にします。": "このページでは現在確認できるセール作品を上部に表示します。",
+    "承認後に追加する収益導線": "現在のセール作品",
     "HIGH INTENT": "おすすめ",
     "COMPARE": "比較",
     "TRUST": "レビュー",
@@ -83,6 +90,8 @@ VISIBLE_AUDIT_TERMS = [
     "収益導線",
     "収益化",
     "DMM審査通過後",
+    "DMMアフィリエイトへ申請中",
+    "アフィリエイトプログラムへの参加を予定",
     "アフィリエイトID/API",
     "広告リンク表示枠",
     "広告導線",
@@ -110,7 +119,14 @@ VISIBLE_AUDIT_TERMS = [
     "仮置き",
     "実装予定",
     "テスト用",
+    "今後増やす入口",
+    "設計にします",
 ]
+
+ENTITY_LINK_RE = re.compile(
+    r'<a(?P<before>[^>]*?)href=["\'](?P<href>/ranking/(?P<type>genre|maker|actress)/(?P<id>[^/"\']+)/)["\'](?P<after>[^>]*)>(?P<body>.*?)</a>',
+    re.S | re.I,
+)
 
 
 def looks_like_html(text: str) -> bool:
@@ -126,13 +142,34 @@ def visible_text(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
-def patch(path: Path) -> tuple[bool, list[str]]:
+def repair_missing_entity_links(text: str) -> tuple[str, int]:
+    repaired = 0
+
+    def repl(match: re.Match[str]) -> str:
+        nonlocal repaired
+        entity_type = match.group("type").lower()
+        entity_id = match.group("id")
+        target = ROOT / "ranking" / entity_type / entity_id / "index.html"
+        target_alt = ROOT / "ranking" / entity_type / entity_id / "index"
+        if target.exists() or target_alt.exists():
+            return match.group(0)
+
+        name = visible_text(match.group("body"))
+        param = {"genre": "genre", "maker": "maker", "actress": "actress"}[entity_type]
+        fallback = f"/search/?{param}={quote(name)}" if name else "/search/"
+        repaired += 1
+        return f'<a{match.group("before")}href="{fallback}"{match.group("after")}>{match.group("body")}</a>'
+
+    return ENTITY_LINK_RE.sub(repl, text), repaired
+
+
+def patch(path: Path) -> tuple[bool, list[str], int]:
     try:
         text = path.read_text(encoding="utf-8")
     except (UnicodeDecodeError, OSError):
-        return False, []
+        return False, [], 0
     if not looks_like_html(text):
-        return False, []
+        return False, [], 0
 
     before = text
 
@@ -145,6 +182,8 @@ def patch(path: Path) -> tuple[bool, list[str]]:
     for old, new in TEXT_REPLACEMENTS.items():
         text = text.replace(old, new)
 
+    text, repaired_links = repair_missing_entity_links(text)
+
     # Remove empty elements left by cleanup.
     text = re.sub(r'<h[1-6][^>]*>\s*</h[1-6]>', '', text, flags=re.I)
     text = re.sub(r'<p[^>]*>\s*</p>', '', text, flags=re.I)
@@ -155,7 +194,7 @@ def patch(path: Path) -> tuple[bool, list[str]]:
 
     visible = visible_text(text)
     remaining = [term for term in VISIBLE_AUDIT_TERMS if term in visible]
-    return text != before, remaining
+    return text != before, remaining, repaired_links
 
 
 def main() -> None:
@@ -166,6 +205,7 @@ def main() -> None:
 
     checked = 0
     changed = 0
+    repaired_links = 0
     remaining_pages: list[tuple[str, list[str]]] = []
 
     for path in ROOT.rglob("*"):
@@ -182,13 +222,14 @@ def main() -> None:
             continue
 
         checked += 1
-        did_change, remaining = patch(path)
+        did_change, remaining, fixed_count = patch(path)
         if did_change:
             changed += 1
+        repaired_links += fixed_count
         if remaining:
             remaining_pages.append((path.relative_to(ROOT).as_posix(), remaining))
 
-    print(f"Public-copy audit: checked={checked} changed={changed}")
+    print(f"Public-copy audit: checked={checked} changed={changed} repaired_entity_links={repaired_links}")
     if remaining_pages:
         print("ERROR: owner/developer-facing visible text still exists:")
         for rel, terms in remaining_pages[:200]:
