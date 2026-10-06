@@ -29,6 +29,8 @@ ACTRESS_MIN_WORKS = 3
 MAX_INDEXABLE_FILES = int(os.environ.get("MAX_INDEXABLE_FILES", "18000"))
 REQUEST_DELAY = float(os.environ.get("DMM_REQUEST_DELAY", "0.12"))
 MAX_PAGES = int(os.environ.get("DMM_FULL_CATALOG_MAX_PAGES", "0"))  # 0 = APIが空になるまで
+MIN_CATALOG_ITEMS = int(os.environ.get("DMM_FULL_CATALOG_MIN_ITEMS", "40000"))
+MAX_EMPTY_NEW_PAGES = int(os.environ.get("DMM_FULL_CATALOG_MAX_EMPTY_NEW_PAGES", "3"))
 
 
 def yen(value: object) -> str:
@@ -93,7 +95,7 @@ def normalize(item: dict) -> dict:
     }
 
 
-def api_page(api_id: str, affiliate_id: str, offset: int) -> tuple[list[dict], int]:
+def api_page(api_id: str, affiliate_id: str, offset: int, sort_mode: str = "date") -> tuple[list[dict], int]:
     params = {
         "api_id": api_id,
         "affiliate_id": affiliate_id,
@@ -102,7 +104,7 @@ def api_page(api_id: str, affiliate_id: str, offset: int) -> tuple[list[dict], i
         "floor": "videoa",
         "hits": str(HITS),
         "offset": str(offset),
-        "sort": "date",
+        "sort": sort_mode,
         "output": "json",
     }
     req = Request(API_URL + "?" + urlencode(params), headers={"User-Agent": "okazu-full-catalog/1.0"})
@@ -123,14 +125,15 @@ def api_page(api_id: str, affiliate_id: str, offset: int) -> tuple[list[dict], i
     raise RuntimeError(f"ItemList failed offset={offset}: {last}")
 
 
-def collect_all(api_id: str, affiliate_id: str) -> tuple[list[dict], int]:
+def collect_sort(api_id: str, affiliate_id: str, sort_mode: str) -> tuple[list[dict], int]:
     seen = set()
     out = []
     offset = 1
     page_no = 0
     reported_total = 0
+    empty_new_pages = 0
     while True:
-        rows, total = api_page(api_id, affiliate_id, offset)
+        rows, total = api_page(api_id, affiliate_id, offset, sort_mode)
         reported_total = max(reported_total, total)
         if not rows:
             break
@@ -143,17 +146,63 @@ def collect_all(api_id: str, affiliate_id: str) -> tuple[list[dict], int]:
             out.append(row)
             new_count += 1
         page_no += 1
-        print(f"Catalog API page={page_no} offset={offset} collected={len(out)} reported_total={reported_total}")
+        print(
+            f"Catalog API sort={sort_mode} page={page_no} offset={offset} "
+            f"new={new_count} collected={len(out)} reported_total={reported_total}"
+        )
         if len(rows) < HITS or (reported_total and offset + HITS > reported_total):
             break
         if MAX_PAGES and page_no >= MAX_PAGES:
             print(f"Stopped by DMM_FULL_CATALOG_MAX_PAGES={MAX_PAGES}")
             break
-        if new_count == 0:
+        empty_new_pages = empty_new_pages + 1 if new_count == 0 else 0
+        if empty_new_pages >= MAX_EMPTY_NEW_PAGES:
+            print(
+                f"Stopping sort={sort_mode} after {empty_new_pages} consecutive pages "
+                "with no new product IDs."
+            )
             break
         offset += HITS
         time.sleep(REQUEST_DELAY)
     return out, reported_total
+
+
+def collect_all(api_id: str, affiliate_id: str) -> tuple[list[dict], int]:
+    # Date sorting can occasionally return overlapping/repeated pages while
+    # still reporting the full result count. Keep it for freshness, but never
+    # allow a transient pagination regression to shrink the production catalog.
+    date_items, date_total = collect_sort(api_id, affiliate_id, "date")
+    target = min(MIN_CATALOG_ITEMS, date_total) if date_total else MIN_CATALOG_ITEMS
+    if len(date_items) >= target:
+        return date_items, date_total
+
+    print(
+        f"WARN date-sorted catalog is incomplete: collected={len(date_items)} "
+        f"reported_total={date_total}; retrying with stable rank pagination."
+    )
+    rank_items, rank_total = collect_sort(api_id, affiliate_id, "rank")
+
+    merged = []
+    seen = set()
+    for row in date_items + rank_items:
+        key = row.get("contentId") or row.get("affiliateURL")
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        merged.append(row)
+
+    reported_total = max(date_total, rank_total)
+    required = min(MIN_CATALOG_ITEMS, reported_total) if reported_total else MIN_CATALOG_ITEMS
+    print(
+        f"Catalog recovery: date={len(date_items)} rank={len(rank_items)} "
+        f"merged={len(merged)} reported_total={reported_total} required={required}"
+    )
+    if len(merged) < required:
+        raise RuntimeError(
+            f"Refusing to replace production catalog with incomplete API result: "
+            f"collected={len(merged)}, required={required}, reported_total={reported_total}"
+        )
+    return merged, reported_total
 
 
 def safe_id(value: str) -> str:
