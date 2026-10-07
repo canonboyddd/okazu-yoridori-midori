@@ -86,6 +86,14 @@ def _inject_jsonld(path: Path, schemas: list[dict]) -> None:
     if not path.exists():
         return
     text = path.read_text(encoding="utf-8")
+    # All generated FANZA ranking hubs/details are substantive public pages and are
+    # submitted in sitemap.xml. Never leave a stale noindex behind after snapshot
+    # restoration or a previous build variant.
+    robots_tag = '<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1">'
+    if re.search(r'<meta\s+name=["\']robots["\'][^>]*>', text, flags=re.I):
+        text = re.sub(r'<meta\s+name=["\']robots["\'][^>]*>', robots_tag, text, count=1, flags=re.I)
+    else:
+        text = text.replace("</head>", robots_tag + "</head>", 1)
     text = re.sub(r"<!-- FANZA_SEO_SCHEMA_START -->.*?<!-- FANZA_SEO_SCHEMA_END -->", "", text, flags=re.S)
     block = "<!-- FANZA_SEO_SCHEMA_START -->" + "".join(_jsonld(x) for x in schemas) + "<!-- FANZA_SEO_SCHEMA_END -->"
     text = text.replace("</head>", block + "</head>")
