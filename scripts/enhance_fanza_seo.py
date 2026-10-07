@@ -193,6 +193,48 @@ def _update_sitemap_lastmod(dynamic_paths: list[str]) -> None:
     SITEMAP.write_text(text, encoding="utf-8")
 
 
+def _prune_noindex_ranking_urls() -> None:
+    """Keep sitemap.xml consistent with restored/generated ranking files.
+
+    Fast deploys restore a prior production snapshot. Old entity-detail pages can
+    survive there after they stop being part of the current API entity set. If
+    such a page is intentionally noindex, it must not remain submitted in the
+    sitemap or Search Console reports it as an indexing problem.
+    """
+    if not SITEMAP.exists():
+        return
+    text = SITEMAP.read_text(encoding="utf-8")
+    removed: list[str] = []
+
+    def repl(match: re.Match[str]) -> str:
+        block = match.group(0)
+        loc_match = re.search(r"<loc>([^<]+)</loc>", block)
+        if not loc_match:
+            return block
+        url = loc_match.group(1).strip()
+        try:
+            path = url.removeprefix(BASE_URL)
+        except Exception:
+            return block
+        m = re.fullmatch(r"/ranking/(actress|genre|maker)/([^/]+)/", path)
+        if not m:
+            return block
+        file_path = ROOT / "ranking" / m.group(1) / m.group(2) / "index.html"
+        if not file_path.exists():
+            removed.append(url)
+            return ""
+        page = file_path.read_text(encoding="utf-8", errors="ignore")
+        if re.search(r'<meta\s+name=["\']robots["\'][^>]*content=["\'][^"\']*noindex', page, flags=re.I):
+            removed.append(url)
+            return ""
+        return block
+
+    text = re.sub(r"\s*<url>\s*<loc>https://okazu-yoridori-midori\.pages\.dev/ranking/(?:actress|genre|maker)/[^<]+</loc>.*?</url>\s*", repl, text, flags=re.S)
+    SITEMAP.write_text(text, encoding="utf-8")
+    if removed:
+        print(f"Pruned {len(removed)} missing/noindex ranking URLs from sitemap")
+
+
 def main() -> None:
     if not ENTITY_DATA.exists():
         print("FANZA entity data missing; SEO enhancement skipped.")
@@ -241,6 +283,7 @@ def main() -> None:
             _inject_internal_links(detail_path, internal)
 
     _update_sitemap_lastmod(dynamic_paths)
+    _prune_noindex_ranking_urls()
     print(f"SEO enhanced {len(dynamic_paths)} generated ranking URLs with JSON-LD, breadcrumbs and internal links")
 
 
