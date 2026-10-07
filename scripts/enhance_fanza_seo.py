@@ -219,7 +219,7 @@ def _prune_noindex_ranking_urls() -> None:
         m = re.fullmatch(r"/ranking/(actress|genre|maker)/([^/]+)/", path)
         if not m:
             return block
-        file_path = ROOT / "ranking" / m.group(1) / m.group(2) / "index.html"
+        file_path = Path("public") / "ranking" / m.group(1) / m.group(2) / "index.html"
         if not file_path.exists():
             removed.append(url)
             return ""
