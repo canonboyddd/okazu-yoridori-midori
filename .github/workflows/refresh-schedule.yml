@@ -1,0 +1,43 @@
+name: Dispatch full FANZA refresh every 3 days
+
+# A cron day-of-month */3 resets at month boundaries. Instead this lightweight
+# daily dispatcher checks a fixed UTC-day anchor, giving a true 72-hour cadence.
+# Last baseline full refresh: 2026-10-10 19:30 UTC (2026-10-11 04:30 JST).
+on:
+  schedule:
+    - cron: '30 19 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: fanza-three-day-refresh-dispatch
+  cancel-in-progress: true
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Check exact 3-day schedule (UTC)
+        id: cadence
+        shell: bash
+        run: |
+          set -euo pipefail
+          today=$(( $(date -u +%s) / 86400 ))
+          anchor=$(( $(date -u -d '2026-10-10' +%s) / 86400 ))
+          if [[ "$GITHUB_EVENT_NAME" == 'workflow_dispatch' ]] || (( (today - anchor) % 3 == 0 )); then
+            echo 'due=true' >> "$GITHUB_OUTPUT"
+            echo 'Full refresh due; scheduled by UTC day difference divisible by 3.'
+          else
+            echo 'due=false' >> "$GITHUB_OUTPUT"
+            echo 'Not the scheduled 3-day update day. No full rebuild started.'
+          fi
+
+      - name: Trigger full build and publish
+        if: steps.cadence.outputs.due == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run daily-data-deploy.yml --ref main
