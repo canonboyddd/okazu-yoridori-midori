@@ -5,6 +5,8 @@ import os
 import re
 import time
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
+from threading import Lock
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
@@ -19,6 +21,22 @@ PRODUCT_ROOT = ROOT / "products"
 API_LIMIT = int(os.environ.get("DMM_MISSING_ACTRESS_API_LIMIT", "1500"))
 REQUEST_DELAY = float(os.environ.get("DMM_REQUEST_DELAY", "0.12"))
 MIN_NAME_LEN = int(os.environ.get("DMM_TITLE_ACTRESS_MIN_LEN", "2"))
+
+# Bound API concurrency and request-start rate to respect the remote service.
+FETCH_WORKERS = min(3, max(1, int(os.environ.get("DMM_FETCH_WORKERS", "3"))))
+_RATE_LOCK = Lock()
+_NEXT_REQUEST_AT = 0.0
+
+
+def _api_throttle() -> None:
+    global _NEXT_REQUEST_AT
+    with _RATE_LOCK:
+        now = time.monotonic()
+        wait = max(0.0, _NEXT_REQUEST_AT - now)
+        _NEXT_REQUEST_AT = max(now, _NEXT_REQUEST_AT) + max(0.24, REQUEST_DELAY)
+    if wait:
+        time.sleep(wait)
+
 
 
 def load_json(path: Path, fallback):
@@ -95,6 +113,7 @@ def api_lookup(api_id: str, affiliate_id: str, cid: str) -> list[dict]:
     last: Exception | None = None
     for attempt in range(3):
         try:
+            _api_throttle()
             with urlopen(req, timeout=45) as res:
                 payload = json.loads(res.read().decode("utf-8"))
             result = payload.get("result") or {}
@@ -192,20 +211,27 @@ def main() -> None:
     api_attempted = 0
     api_matched = 0
     if api_id and API_LIMIT > 0:
-        for shard_index, row_index, row in unresolved[:API_LIMIT]:
-            cid = str(row.get("contentId") or "").strip()
-            if not cid:
-                continue
-            api_attempted += 1
-            matched = api_lookup(api_id, affiliate_id, cid)
-            if matched:
-                row["actressEntities"] = matched
-                row["actresses"] = [x["name"] for x in matched]
-                row["actressEnrichmentSource"] = "fanza-itemlist-cid"
-                api_matched += 1
-                if patch_static_product(cid, matched):
-                    static_patched += 1
-            time.sleep(REQUEST_DELAY)
+        # Run bounded I/O requests concurrently; apply all results in the
+        # original priority order, preserving per-product output semantics.
+        targets = [
+            ref for ref in unresolved[:API_LIMIT]
+            if str(ref[2].get("contentId") or "").strip()
+        ]
+        api_attempted = len(targets)
+        with ThreadPoolExecutor(max_workers=FETCH_WORKERS) as executor:
+            looked_up = executor.map(
+                lambda ref: api_lookup(api_id, affiliate_id, str(ref[2].get("contentId") or "").strip()),
+                targets,
+            )
+            for (shard_index, row_index, row), matched in zip(targets, looked_up):
+                if matched:
+                    cid = str(row.get("contentId") or "").strip()
+                    row["actressEntities"] = matched
+                    row["actresses"] = [x["name"] for x in matched]
+                    row["actressEnrichmentSource"] = "fanza-itemlist-cid"
+                    api_matched += 1
+                    if patch_static_product(cid, matched):
+                        static_patched += 1
     elif not api_id:
         print("DMM_API_ID missing; exact API enrichment skipped")
 
