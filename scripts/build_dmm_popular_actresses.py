@@ -6,6 +6,8 @@ import os
 import re
 import time
 from datetime import datetime, timezone
+from concurrent.futures import ThreadPoolExecutor
+from threading import Lock
 from pathlib import Path
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
@@ -25,6 +27,21 @@ MAX_PAGES = int(os.environ.get("DMM_POPULAR_ACTRESS_MAX_PAGES", "500"))
 ENRICH_TOP_MISSING = int(os.environ.get("DMM_POPULAR_ACTRESS_ENRICH_MISSING", "300"))
 REQUEST_DELAY = float(os.environ.get("DMM_REQUEST_DELAY", "0.10"))
 
+FETCH_WORKERS = min(3, max(1, int(os.environ.get("DMM_FETCH_WORKERS", "3"))))
+_RATE_LOCK = Lock()
+_NEXT_REQUEST_AT = 0.0
+
+
+def _api_throttle() -> None:
+    global _NEXT_REQUEST_AT
+    with _RATE_LOCK:
+        now = time.monotonic()
+        wait = max(0.0, _NEXT_REQUEST_AT - now)
+        _NEXT_REQUEST_AT = max(now, _NEXT_REQUEST_AT) + max(0.24, REQUEST_DELAY)
+    if wait:
+        time.sleep(wait)
+
+
 
 def api_json(endpoint: str, params: dict[str, str], retries: int = 4) -> dict:
     url = f"{API_BASE}/{endpoint}?{urlencode(params)}"
@@ -32,6 +49,7 @@ def api_json(endpoint: str, params: dict[str, str], retries: int = 4) -> dict:
     last: Exception | None = None
     for attempt in range(retries):
         try:
+            _api_throttle()
             with urlopen(req, timeout=60) as res:
                 payload = json.loads(res.read().decode("utf-8"))
             result = payload.get("result") or {}
@@ -84,47 +102,59 @@ def collect_popularity(api_id: str, affiliate_id: str) -> list[dict]:
     stats: dict[str, dict] = {}
     offset = 1
     page = 0
-    while page < MAX_PAGES and len(stats) < TARGET:
-        result = api_json("ItemList", {
-            "api_id": api_id,
-            "affiliate_id": affiliate_id,
-            "site": "FANZA",
-            "service": "digital",
-            "floor": "videoa",
-            "hits": str(HITS),
-            "offset": str(offset),
-            "sort": "rank",
-            "output": "json",
-        })
-        items = result.get("items") or []
-        if not items:
-            break
-        for i, item in enumerate(items):
-            if not isinstance(item, dict):
-                continue
-            product_rank = offset + i
-            info = item.get("iteminfo") or {}
-            for actress in info.get("actress") or []:
-                if not isinstance(actress, dict):
-                    continue
-                actress_id = str(actress.get("id") or "").strip()
-                name = str(actress.get("name") or "").strip()
-                if not actress_id or not name:
-                    continue
-                if actress_id not in stats:
-                    stats[actress_id] = {
-                        "id": actress_id,
-                        "name": name,
-                        "firstProductRank": product_rank,
-                        "rankedAppearances": 0,
-                    }
-                stats[actress_id]["rankedAppearances"] += 1
-        page += 1
-        print(f"DMM rank scan page={page} offset={offset} unique_actresses={len(stats)}")
-        if len(items) < HITS:
-            break
-        offset += HITS
-        time.sleep(REQUEST_DELAY)
+    with ThreadPoolExecutor(max_workers=FETCH_WORKERS) as executor:
+        finished = False
+        while page < MAX_PAGES and len(stats) < TARGET and not finished:
+            slots = min(FETCH_WORKERS, MAX_PAGES - page)
+            offsets = [offset + HITS * i for i in range(slots)]
+
+            def fetch_ranked_page(page_offset: int) -> dict:
+                return api_json("ItemList", {
+                    "api_id": api_id,
+                    "affiliate_id": affiliate_id,
+                    "site": "FANZA",
+                    "service": "digital",
+                    "floor": "videoa",
+                    "hits": str(HITS),
+                    "offset": str(page_offset),
+                    "sort": "rank",
+                    "output": "json",
+                })
+
+            pages = list(executor.map(fetch_ranked_page, offsets))
+            # Always aggregate in rank/offset order so popularity positions
+            # and the existing tie-breaks are identical to sequential output.
+            for page_offset, result in zip(offsets, pages):
+                items = result.get("items") or []
+                if not items:
+                    finished = True
+                    break
+                for i, item in enumerate(items):
+                    if not isinstance(item, dict):
+                        continue
+                    product_rank = page_offset + i
+                    info = item.get("iteminfo") or {}
+                    for actress in info.get("actress") or []:
+                        if not isinstance(actress, dict):
+                            continue
+                        actress_id = str(actress.get("id") or "").strip()
+                        name = str(actress.get("name") or "").strip()
+                        if not actress_id or not name:
+                            continue
+                        if actress_id not in stats:
+                            stats[actress_id] = {
+                                "id": actress_id,
+                                "name": name,
+                                "firstProductRank": product_rank,
+                                "rankedAppearances": 0,
+                            }
+                        stats[actress_id]["rankedAppearances"] += 1
+                page += 1
+                print(f"DMM rank scan page={page} offset={page_offset} unique_actresses={len(stats)}")
+                if len(items) < HITS or len(stats) >= TARGET:
+                    finished = True
+                    break
+            offset += HITS * len(offsets)
 
     rows = list(stats.values())
     rows.sort(key=lambda r: (int(r["firstProductRank"]), -int(r["rankedAppearances"]), str(r["name"])))
