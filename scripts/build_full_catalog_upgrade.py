@@ -8,6 +8,8 @@ import re
 import shutil
 import time
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
+from threading import Lock
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlencode
@@ -31,6 +33,21 @@ REQUEST_DELAY = float(os.environ.get("DMM_REQUEST_DELAY", "0.12"))
 MAX_PAGES = int(os.environ.get("DMM_FULL_CATALOG_MAX_PAGES", "0"))  # 0 = APIが空になるまで
 MIN_CATALOG_ITEMS = int(os.environ.get("DMM_FULL_CATALOG_MIN_ITEMS", "40000"))
 MAX_EMPTY_NEW_PAGES = int(os.environ.get("DMM_FULL_CATALOG_MAX_EMPTY_NEW_PAGES", "3"))
+
+FETCH_WORKERS = min(3, max(1, int(os.environ.get("DMM_FETCH_WORKERS", "3"))))
+_RATE_LOCK = Lock()
+_NEXT_REQUEST_AT = 0.0
+
+
+def _api_throttle() -> None:
+    global _NEXT_REQUEST_AT
+    with _RATE_LOCK:
+        now = time.monotonic()
+        wait = max(0.0, _NEXT_REQUEST_AT - now)
+        _NEXT_REQUEST_AT = max(now, _NEXT_REQUEST_AT) + max(0.24, REQUEST_DELAY)
+    if wait:
+        time.sleep(wait)
+
 
 
 def yen(value: object) -> str:
@@ -111,6 +128,7 @@ def api_page(api_id: str, affiliate_id: str, offset: int, sort_mode: str = "date
     last = None
     for attempt in range(4):
         try:
+            _api_throttle()
             with urlopen(req, timeout=60) as res:
                 payload = json.loads(res.read().decode("utf-8"))
             result = payload.get("result") or {}
@@ -132,38 +150,57 @@ def collect_sort(api_id: str, affiliate_id: str, sort_mode: str) -> tuple[list[d
     page_no = 0
     reported_total = 0
     empty_new_pages = 0
-    while True:
-        rows, total = api_page(api_id, affiliate_id, offset, sort_mode)
-        reported_total = max(reported_total, total)
-        if not rows:
-            break
-        new_count = 0
-        for row in rows:
-            key = row.get("contentId") or row.get("affiliateURL")
-            if not key or not row.get("title") or key in seen:
-                continue
-            seen.add(key)
-            out.append(row)
-            new_count += 1
-        page_no += 1
-        print(
-            f"Catalog API sort={sort_mode} page={page_no} offset={offset} "
-            f"new={new_count} collected={len(out)} reported_total={reported_total}"
-        )
-        if len(rows) < HITS or (reported_total and offset + HITS > reported_total):
-            break
-        if MAX_PAGES and page_no >= MAX_PAGES:
-            print(f"Stopped by DMM_FULL_CATALOG_MAX_PAGES={MAX_PAGES}")
-            break
-        empty_new_pages = empty_new_pages + 1 if new_count == 0 else 0
-        if empty_new_pages >= MAX_EMPTY_NEW_PAGES:
-            print(
-                f"Stopping sort={sort_mode} after {empty_new_pages} consecutive pages "
-                "with no new product IDs."
-            )
-            break
-        offset += HITS
-        time.sleep(REQUEST_DELAY)
+    with ThreadPoolExecutor(max_workers=FETCH_WORKERS) as executor:
+        finished = False
+        while not finished:
+            slots = FETCH_WORKERS
+            if MAX_PAGES:
+                slots = min(slots, MAX_PAGES - page_no)
+            if reported_total:
+                slots = min(slots, max(0, (reported_total - offset + HITS - 1) // HITS))
+            if slots <= 0:
+                break
+            offsets = [offset + HITS * i for i in range(slots)]
+            # Network-only prefetch. Process responses in original offset order;
+            # catalog ordering, duplicate checks and completeness gates stay intact.
+            pages = list(executor.map(
+                lambda off: api_page(api_id, affiliate_id, off, sort_mode),
+                offsets,
+            ))
+            for page_offset, (rows, total) in zip(offsets, pages):
+                reported_total = max(reported_total, total)
+                if not rows:
+                    finished = True
+                    break
+                new_count = 0
+                for row in rows:
+                    key = row.get("contentId") or row.get("affiliateURL")
+                    if not key or not row.get("title") or key in seen:
+                        continue
+                    seen.add(key)
+                    out.append(row)
+                    new_count += 1
+                page_no += 1
+                print(
+                    f"Catalog API sort={sort_mode} page={page_no} offset={page_offset} "
+                    f"new={new_count} collected={len(out)} reported_total={reported_total}"
+                )
+                if len(rows) < HITS or (reported_total and page_offset + HITS > reported_total):
+                    finished = True
+                    break
+                if MAX_PAGES and page_no >= MAX_PAGES:
+                    print(f"Stopped by DMM_FULL_CATALOG_MAX_PAGES={MAX_PAGES}")
+                    finished = True
+                    break
+                empty_new_pages = empty_new_pages + 1 if new_count == 0 else 0
+                if empty_new_pages >= MAX_EMPTY_NEW_PAGES:
+                    print(
+                        f"Stopping sort={sort_mode} after {empty_new_pages} consecutive pages "
+                        "with no new product IDs."
+                    )
+                    finished = True
+                    break
+            offset += HITS * len(offsets)
     return out, reported_total
 
 
