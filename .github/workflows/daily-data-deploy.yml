@@ -23,6 +23,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Validate optimized fetchers offline before expensive API work
+        run: |
+          python -m py_compile scripts/build_full_catalog_upgrade.py scripts/enrich_missing_actresses.py scripts/build_dmm_popular_actresses.py
+          python scripts/qa_parallel_fetch.py
+
       - name: Expand FANZA catalog settings
         run: |
           sed -i 's/^ENTITY_LIMIT = 10$/ENTITY_LIMIT = 20/' scripts/build_fanza_api.py
