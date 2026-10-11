@@ -210,7 +210,8 @@ jobs:
         with:
           name: production-public
           path: public
-          retention-days: 3
+          # Daily snapshots are large (~222 MB). Keep latest two days for fast deploys.
+          retention-days: 2
           compression-level: 1
           if-no-files-found: error
 
