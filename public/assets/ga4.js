@@ -120,7 +120,16 @@
     try { gtag("event", name, params || {}); } catch (_) {}
   }
 
+
+  // D1 analytics only; keep GA4 behavior separate.
+  function skipOpsAnalytics() {
+    if (navigator.webdriver === true || /bot|crawler|spider|slurp|bingpreview|google-inspectiontool|lighthouse|pagespeed|headless|phantom|selenium|puppeteer|playwright|facebookexternalhit|twitterbot|linkedinbot|discordbot|uptimerobot|pingdom|monitor/i.test(String(navigator.userAgent || ""))) return true;
+    try { if (localStorage.getItem("ops_owner_excluded") === "1") return true; } catch (_) {}
+    return /(?:^|;\s*)ops_owner_excluded=1(?:;|$)/.test(document.cookie || "");
+  }
+
   function sendOps(name, extra) {
+    if (skipOpsAnalytics()) return;
     const ctx = pageContext();
     const payload = Object.assign({
       event_name: name,
@@ -223,3 +232,4 @@
     }
   }, true);
 })();
+
