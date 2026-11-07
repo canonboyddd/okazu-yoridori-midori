@@ -188,8 +188,8 @@ jobs:
         with:
           name: production-public
           path: public
-          # Full refresh runs every 3 days; keep a 4-day snapshot for fast deploys.
-          retention-days: 4
+          # Keep two 3-day cycles so one delayed refresh cannot break fast deploys.
+          retention-days: 7
           compression-level: 1
           if-no-files-found: error
 

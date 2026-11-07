@@ -4,6 +4,10 @@ name: Dispatch full FANZA refresh every 3 days
 # daily dispatcher checks a fixed UTC-day anchor, giving a true 72-hour cadence.
 # Last baseline full refresh: 2026-10-10 19:30 UTC (2026-10-11 04:30 JST).
 on:
+  # Revalidating this dispatcher also rebuilds an expired production snapshot.
+  push:
+    branches: [main]
+    paths: ['.github/workflows/refresh-schedule.yml']
   schedule:
     - cron: '30 19 * * *'
   workflow_dispatch:
@@ -28,7 +32,7 @@ jobs:
           set -euo pipefail
           today=$(( $(date -u +%s) / 86400 ))
           anchor=$(( $(date -u -d '2026-10-10' +%s) / 86400 ))
-          if [[ "$GITHUB_EVENT_NAME" == 'workflow_dispatch' ]] || (( (today - anchor) % 3 == 0 )); then
+          if [[ "$GITHUB_EVENT_NAME" == 'workflow_dispatch' || "$GITHUB_EVENT_NAME" == 'push' ]] || (( (today - anchor) % 3 == 0 )); then
             echo 'due=true' >> "$GITHUB_OUTPUT"
             echo 'Full refresh due; scheduled by UTC day difference divisible by 3.'
           else
@@ -40,4 +44,5 @@ jobs:
         if: steps.cadence.outputs.due == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh workflow run daily-data-deploy.yml --ref main
+        # This job deliberately has no checkout, so gh cannot infer the repo.
+        run: gh workflow run daily-data-deploy.yml --repo "$GITHUB_REPOSITORY" --ref main
