@@ -1,0 +1,32 @@
+[
+  {
+    "path": "/search/",
+    "passed": true,
+    "ageSubmission": false,
+    "externalRequests": 0
+  },
+  {
+    "path": "/ranking/actress/popular/",
+    "passed": true,
+    "ageSubmission": false,
+    "externalRequests": 0
+  },
+  {
+    "path": "/ranking/actress/aliases/",
+    "passed": true,
+    "ageSubmission": false,
+    "externalRequests": 0
+  },
+  {
+    "path": "/products/view/",
+    "passed": true,
+    "ageSubmission": false,
+    "externalRequests": 0
+  },
+  {
+    "path": "/privacy.html",
+    "passed": true,
+    "ageSubmission": false,
+    "externalRequests": 0
+  }
+]

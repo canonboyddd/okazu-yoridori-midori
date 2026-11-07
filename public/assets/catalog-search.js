@@ -142,11 +142,7 @@
     if (track && window.trackOpsEvent) {
       window.trackOpsEvent('catalog_search', {
         program: 'fanza_catalog_search',
-        placement: [p.q,p.actress,p.genre,p.maker].filter(Boolean).join(' | ').slice(0,160),
-        search_query: p.q,
-        actress: p.actress,
-        genre: p.genre,
-        maker: p.maker,
+        placement: 'catalog-search-results',
         result_count: filtered.length,
       });
     }

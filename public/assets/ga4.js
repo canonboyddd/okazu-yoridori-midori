@@ -19,7 +19,7 @@
     s.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(id);
     document.head.appendChild(s);
     gtag("js", new Date());
-    gtag("config", id, {send_page_view: false, debug_mode: !!cfg.debugMode, allow_google_signals:false});
+    gtag("config", id, {send_page_view: false, debug_mode: !!cfg.debugMode, allow_google_signals:false,page_location:location.origin+currentPath(),page_referrer:referrerHost()});
   }
 
   function uuid() {
@@ -68,7 +68,10 @@
     if (m) { ctx.page_type = "maker"; ctx.maker = textOf("h1").replace(/\s+(人気作品.*|全[0-9,]+作品.*)$/i, ""); }
     m = path.match(/^\/products\/([^/]+)\/?$/);
     if (m && m[1] !== "view") { ctx.page_type = "product"; ctx.product_id = m[1]; }
-    if (path.startsWith("/products/view")) { ctx.page_type = "product"; ctx.product_id = new URLSearchParams(location.search).get("id") || ""; }
+    if (path.startsWith("/products/view")) { ctx.page_type = "product"; const id=new URLSearchParams(location.search).get("id")||'';ctx.product_id=/^[A-Za-z0-9_-]{1,120}$/.test(id)?id:''; }
+    if (/^\/products\/?$/.test(path)) ctx.page_type='catalog';
+    if (path.startsWith('/subscription')) ctx.page_type='subscription';
+    if (path.startsWith('/fc2-adult')) ctx.page_type='fc2';
     if (ctx.page_type === "product") {
       ctx.actress = detailValue("出演者");
       ctx.genre = detailValue("ジャンル");
@@ -122,10 +125,12 @@
 
   function sendGa(name, params) {
     if (!hasGa || blocked()) return;
-    const allowed={};for(const key of ['page_type','product_id','provider','program','placement','cta_position','outbound_domain','device_type','variant','result_count','origin_page_type'])if(params?.[key]!=null)allowed[key]=params[key];
+    const allowed={};for(const key of ['page_type','product_id','provider','program','placement','cta_position','outbound_domain','device_type','variant','result_count','origin_page_type'])if(params?.[key]!=null)allowed[key]=safeDimension(params[key]);
     allowed.page_location=location.origin+currentPath();allowed.page_referrer=referrerHost();
     try { gtag("event", name, allowed); } catch (_) {}
   }
+
+  function safeDimension(value){if(typeof value==='number')return Number.isSafeInteger(value)&&value>=0?value:0;const text=String(value||'');return /@|CM-[A-F0-9]{48}|eyJ[A-Za-z0-9_-]+\./i.test(text)?'':text.replace(/[^a-zA-Z0-9_.:/|+-]/g,'-').slice(0,160)}
 
 
   // D1 analytics only; keep GA4 behavior separate.
@@ -139,7 +144,7 @@
     if (blocked() || skipOpsAnalytics()) return;
     const ctx = pageContext();
     const dimensions={};
-    for(const key of ['provider','program','placement','cta_position','outbound_domain','variant','result_count','product_id','origin_page_path','origin_page_type'])if(extra?.[key]!=null)dimensions[key]=extra[key];
+    for(const key of ['provider','program','placement','cta_position','outbound_domain','variant','result_count','product_id','origin_page_path','origin_page_type'])if(extra?.[key]!=null)dimensions[key]=safeDimension(extra[key]);
     const payload = Object.assign({
       event_name: name,
       browser_id: browserId,
@@ -147,7 +152,7 @@
       page_path: currentPath(),
       referrer: referrerHost(),
       device_type: deviceType(),
-      provider: "FANZA",
+      provider: "",
       page_type: ctx.page_type,
       product_id: ctx.product_id,
     }, dimensions);
@@ -170,7 +175,7 @@
   function referrerHost(){try{return document.referrer?new URL(document.referrer).hostname:''}catch{return ''}}
   const initialCtx = pageContext();
   sendGa('page_view',initialCtx);
-  if(['home','ranking','actress','genre','maker','sale','search'].includes(initialCtx.page_type))sendOps('catalog_list_view',{});
+  if(['home','catalog','ranking','actress','genre','maker','sale','search','subscription','fc2'].includes(initialCtx.page_type))sendOps('catalog_list_view',{});
   let detailSeen=false;
   function detailView(){if(!detailSeen&&pageContext().page_type==='product'&&document.querySelector('.fc-detail h1')){detailSeen=true;sendOps('product_detail_view',{})}}
   new MutationObserver(detailView).observe(document.body,{childList:true,subtree:true});detailView();
