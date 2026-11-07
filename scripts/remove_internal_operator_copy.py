@@ -142,6 +142,14 @@ def visible_text(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
+def remaining_audit_terms(text: str, path: Path) -> list[str]:
+    visible = visible_text(text)
+    # Naming the actual analytics processor is user-facing privacy information.
+    # Keep the marketing-copy prohibition everywhere else, including nested URLs.
+    privacy_page = path.resolve() in {(ROOT / 'privacy').resolve(), (ROOT / 'privacy.html').resolve()}
+    return [term for term in VISIBLE_AUDIT_TERMS if term in visible and not (privacy_page and term == 'Cloudflare')]
+
+
 def repair_missing_entity_links(text: str) -> tuple[str, int]:
     repaired = 0
 
@@ -192,8 +200,7 @@ def patch(path: Path) -> tuple[bool, list[str], int]:
     if text != before:
         path.write_text(text, encoding="utf-8")
 
-    visible = visible_text(text)
-    remaining = [term for term in VISIBLE_AUDIT_TERMS if term in visible]
+    remaining = remaining_audit_terms(text, path)
     return text != before, remaining, repaired_links
 
 
