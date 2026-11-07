@@ -55,6 +55,9 @@ jobs:
             assets/app.js \
             assets/ga4.js \
             assets/fc2-affiliate-banners.js \
+            assets/catalog-search.js \
+            privacy \
+            privacy.html \
             assets/affiliate-config.js \
             assets/affiliate-compliance.js \
             assets/dynamic-product.js \
@@ -72,6 +75,9 @@ jobs:
 
       - name: Preserve valid FANZA affiliate links
         run: python scripts/fix_fanza_affiliate_links.py
+
+      - name: Retain current generated homepage measurement
+        run: python scripts/run_home_optimizer_safe.py
 
       - name: Add product descriptions to static product pages
         run: python .github/workflows/helpers/enhance_product_descriptions.py

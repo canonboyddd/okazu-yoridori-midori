@@ -62,6 +62,9 @@ jobs:
             assets/app.js \
             assets/ga4.js \
             assets/fc2-affiliate-banners.js \
+            assets/catalog-search.js \
+            privacy \
+            privacy.html \
             assets/affiliate-config.js \
             assets/affiliate-compliance.js \
             assets/dynamic-product.js \
@@ -75,6 +78,7 @@ jobs:
           done
 
       - name: Add official FANZA product comments to catalog
+        # Runtime/privacy overlays must survive every snapshot-based deploy.
         env:
           DMM_API_ID: ${{ secrets.DMM_API_ID }}
           DMM_API_AFFILIATE_ID: ${{ secrets.DMM_API_AFFILIATE_ID }}
@@ -112,6 +116,9 @@ jobs:
           if with_description < 1:
               raise SystemExit('No product page received an official description')
           PY
+
+      - name: Retain current generated homepage measurement
+        run: python scripts/run_home_optimizer_safe.py
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3

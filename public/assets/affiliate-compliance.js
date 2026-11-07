@@ -228,7 +228,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.body.appendChild(apiScript);
 
   const fc2Script = document.createElement("script");
-  fc2Script.src = "/assets/fc2-affiliate-banners.js?v=20260926-1032";
+  fc2Script.src = "/assets/fc2-affiliate-banners.js?v=20261108-1";
   fc2Script.async = true;
   document.body.appendChild(fc2Script);
 });

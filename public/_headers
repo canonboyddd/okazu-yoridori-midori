@@ -31,6 +31,9 @@
 /assets/ga4.js
   Cache-Control: no-cache, must-revalidate
 
+/assets/fc2-affiliate-banners.js
+  Cache-Control: no-cache, must-revalidate
+
 /assets/rank-contrast-fix.css
   Cache-Control: no-cache, must-revalidate
 

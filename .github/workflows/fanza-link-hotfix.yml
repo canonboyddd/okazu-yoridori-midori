@@ -66,6 +66,9 @@ jobs:
             assets/app.js \
             assets/ga4.js \
             assets/fc2-affiliate-banners.js \
+            assets/catalog-search.js \
+            privacy \
+            privacy.html \
             assets/affiliate-config.js \
             assets/affiliate-compliance.js \
             assets/dynamic-product.js \
@@ -78,6 +81,9 @@ jobs:
 
       - name: Repair every stale FANZA link and bust caches
         run: python scripts/fix_fanza_affiliate_links.py
+
+      - name: Retain current generated homepage measurement
+        run: python scripts/run_home_optimizer_safe.py
 
       - name: Verify broken links are gone
         run: |
