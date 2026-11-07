@@ -102,12 +102,6 @@ CHOOSER_JS = r'''
     return rows.sort((a,b)=>score(b)-score(a)).slice(0,state.count);
   }
 
-  function track(target){
-    const payload={affiliate_service:'DMM/FANZA',affiliate_target:target,page_path:location.pathname};
-    if(typeof window.gtag==='function') window.gtag('event','affiliate_click',payload);
-    else if(Array.isArray(window.dataLayer)) window.dataLayer.push({event:'affiliate_click',...payload});
-  }
-
   function render(rows){
     const grid = document.getElementById('instantPickGrid');
     const area = document.getElementById('instantPicks');
@@ -117,7 +111,7 @@ CHOOSER_JS = r'''
       const discount = Number(x.discountRate||0);
       return `<article class="instant-pick"><div class="instant-pick-img"><span class="instant-pick-num">${i+1}</span><img src="${esc(x.imageURL)}" alt="${esc(x.title)}" loading="lazy"></div><div class="instant-pick-body"><strong>${esc(x.title)}</strong><div class="instant-pick-meta"><b>${esc(price(x.price))}</b><span>${discount?discount+'%OFF':''}</span></div><div class="instant-pick-links"><a class="instant-pick-detail" href="/products/view/?id=${encodeURIComponent(id)}">詳細を見る</a><a class="instant-pick-buy" href="${affiliate}" target="_blank" rel="sponsored nofollow noopener noreferrer" data-direct-fanza="${i+1}">FANZAで見る</a></div></div></article>`;
     }).join('');
-    grid.querySelectorAll('[data-direct-fanza]').forEach(a=>a.addEventListener('click',()=>track('home-chooser-'+a.dataset.directFanza)));
+    grid.querySelectorAll('[data-direct-fanza]').forEach(a=>a.dataset.affiliateTarget='home-chooser-'+a.dataset.directFanza);
     area.classList.add('show');
     area.scrollIntoView({behavior:'smooth',block:'nearest'});
   }

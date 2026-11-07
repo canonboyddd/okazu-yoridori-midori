@@ -1,1 +1,1 @@
-{"name":"okazu-yoridori-midori-runtime-tests","private":true,"type":"module","scripts":{"test":"node --test tests/revenue-collector.test.mjs","test:browser":"node scripts/qa-revenue-browser.mjs && node scripts/qa-age-browser.mjs && node scripts/qa-fc2-browser.mjs"}}
+{"name":"okazu-yoridori-midori-runtime-tests","private":true,"type":"module","scripts":{"test":"node --test tests/revenue-collector.test.mjs","test:browser":"node scripts/qa-revenue-browser.mjs && node scripts/qa-age-browser.mjs && node scripts/qa-fc2-browser.mjs && node scripts/qa-home-chooser.mjs"}}
