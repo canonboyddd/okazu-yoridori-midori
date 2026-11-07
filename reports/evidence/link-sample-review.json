@@ -1,0 +1,102 @@
+{
+  "checkedAtUtc": "2026-11-07 16:51:00 UTC",
+  "site": "https://okazu-yoridori-midori.pages.dev",
+  "method": "Read first-party public JSON and HTML source only; parse encoded affiliate landing URLs locally without following them.",
+  "networkSafety": {
+    "aspRequestsMade": 0,
+    "ageConfirmationSubmitted": false,
+    "analyticsScriptsExecuted": false
+  },
+  "quickData": {
+    "path": "/data/fanza-products.json",
+    "groups": {
+      "ranking": {
+        "sampledRows": 50,
+        "idMatches": 50,
+        "mismatches": 0,
+        "unverifiable": 0,
+        "unexpectedAffiliateHosts": 0
+      },
+      "latest": {
+        "sampledRows": 50,
+        "idMatches": 50,
+        "mismatches": 0,
+        "unverifiable": 0,
+        "unexpectedAffiliateHosts": 0
+      },
+      "highRated": {
+        "sampledRows": 45,
+        "idMatches": 45,
+        "mismatches": 0,
+        "unverifiable": 0,
+        "unexpectedAffiliateHosts": 0
+      },
+      "deals": {
+        "sampledRows": 24,
+        "idMatches": 24,
+        "mismatches": 0,
+        "unverifiable": 0,
+        "unexpectedAffiliateHosts": 0
+      }
+    }
+  },
+  "catalog": {
+    "manifestShards": 100,
+    "sampledShards": [
+      {
+        "path": "/data/catalog/catalog-0001.json",
+        "sampledRows": 500,
+        "idMatches": 500,
+        "mismatches": 0,
+        "unverifiable": 0,
+        "unexpectedAffiliateHosts": 0
+      },
+      {
+        "path": "/data/catalog/catalog-0051.json",
+        "sampledRows": 500,
+        "idMatches": 500,
+        "mismatches": 0,
+        "unverifiable": 0,
+        "unexpectedAffiliateHosts": 0
+      },
+      {
+        "path": "/data/catalog/catalog-0100.json",
+        "sampledRows": 500,
+        "idMatches": 500,
+        "mismatches": 0,
+        "unverifiable": 0,
+        "unexpectedAffiliateHosts": 0
+      }
+    ]
+  },
+  "totals": {
+    "sampledRows": 1669,
+    "idMatches": 1669,
+    "mismatches": 0,
+    "unverifiable": 0,
+    "unexpectedAffiliateHosts": 0
+  },
+  "observedCurrentLandingFormat": {
+    "affiliateHost": "al.fanza.co.jp",
+    "encodedParameter": "lurl",
+    "exampleTemplate": "https://video.dmm.co.jp/av/content/?id={contentId}"
+  },
+  "recognizedIdFormats": [
+    "Landing query id",
+    "Landing query cid",
+    "Legacy landing path cid=..."
+  ],
+  "protectedStaticPage": {
+    "path": "/products/1sods00082/",
+    "status": 200,
+    "productCtaCount": 3,
+    "matchingProductCtaCount": 3,
+    "ageModalMarkupPresent": true
+  },
+  "limits": [
+    "Rows may overlap between quick datasets and catalog shards; 1669 is sampled row count, not distinct products.",
+    "Only 3 of 100 catalog shards were sampled; this does not guarantee the entire catalog.",
+    "No ASP destination was opened, so landing availability, account approval and conversion credit were not verified.",
+    "No evidence of a current ID mismatch was found; no product records, affiliate IDs or URLs were rewritten."
+  ]
+}

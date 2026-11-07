@@ -175,10 +175,15 @@
   function referrerHost(){try{return document.referrer?new URL(document.referrer).hostname:''}catch{return ''}}
   const initialCtx = pageContext();
   sendGa('page_view',initialCtx);
-  if(['home','catalog','ranking','actress','genre','maker','sale','search','subscription','fc2'].includes(initialCtx.page_type))sendOps('catalog_list_view',{});
-  let detailSeen=false;
-  function detailView(){if(!detailSeen&&pageContext().page_type==='product'&&document.querySelector('.fc-detail h1')){detailSeen=true;sendOps('product_detail_view',{})}}
-  new MutationObserver(detailView).observe(document.body,{childList:true,subtree:true});detailView();
+  let detailSeen=false,listSeen=false;
+  function contentViews(){
+    if(document.visibilityState!=='visible'||document.getElementById('ageModal')?.classList.contains('show'))return;
+    const ctx=pageContext();
+    if(!listSeen&&['home','catalog','ranking','actress','genre','maker','sale','search','subscription','fc2'].includes(ctx.page_type)&&document.querySelector('main h1')){listSeen=true;sendOps('catalog_list_view',{});sendGa('catalog_list_view',ctx)}
+    if(!detailSeen&&ctx.page_type==='product'&&document.querySelector('.fc-detail h1')){detailSeen=true;sendOps('product_detail_view',{});sendGa('product_detail_view',ctx)}
+  }
+  new MutationObserver(contentViews).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+  document.addEventListener('visibilitychange',contentViews);contentViews();
   sendOps("page_view", initialCtx.page_type === "product" ? attributionParams() : {});
 
   let scrolled90 = false;

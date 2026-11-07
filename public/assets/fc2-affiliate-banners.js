@@ -1,4 +1,8 @@
 (() => {
+  const path = location.pathname;
+  const eligible=path==='/'||['/subscription','/sale','/ranking','/products','/reviews','/discover','/articles/'].some(prefix=>path.startsWith(prefix));
+  // Setting an image src can request a tracking banner even before insertion.
+  if(!eligible)return;
   const clickBase = 'https://cnt.affiliate.fc2.com/cgi-bin/click.cgi?aff_userid=356511&aff_siteid=348757&aff_shopid=';
   const bannerBase = 'https://cnt.affiliate.fc2.com/cgi-bin/banner.cgi?aff_siteid=348757&uid=356511&bid=';
 
@@ -94,7 +98,6 @@
     document.body.appendChild(node);
   }
 
-  const path = location.pathname;
   if(document.querySelector('[data-fc2-affiliate="1"]')) return;
 
   if(path.startsWith('/subscription')){

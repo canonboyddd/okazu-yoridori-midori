@@ -1,0 +1,32 @@
+[
+  {
+    "path": "/search/",
+    "passed": true,
+    "interceptedExternalRequests": 0,
+    "externalRequestsAllowed": 0
+  },
+  {
+    "path": "/guide/",
+    "passed": true,
+    "interceptedExternalRequests": 0,
+    "externalRequestsAllowed": 0
+  },
+  {
+    "path": "/about.html",
+    "passed": true,
+    "interceptedExternalRequests": 0,
+    "externalRequestsAllowed": 0
+  },
+  {
+    "path": "/privacy.html",
+    "passed": true,
+    "interceptedExternalRequests": 0,
+    "externalRequestsAllowed": 0
+  },
+  {
+    "path": "/sale/",
+    "passed": true,
+    "interceptedExternalRequests": 1,
+    "externalRequestsAllowed": 0
+  }
+]

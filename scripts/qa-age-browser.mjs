@@ -1,0 +1,12 @@
+import {createRequire} from 'node:module';import {readFile,writeFile} from 'node:fs/promises';import assert from 'node:assert/strict';
+const require=createRequire(import.meta.url);const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');const browser=await chromium.launch({headless:true,...(process.platform==='win32'?{channel:'msedge'}:{})});const results=[];
+for(const [path,hasModal] of [['/search/',false],['/ranking/actress/popular/',false],['/ranking/actress/aliases/',false],['/products/view/',true],['/privacy.html',false]]){
+ const ctx=await browser.newContext({userAgent:'Mozilla/5.0 Chrome/130 Safari/537.36'});await ctx.addInitScript(()=>Object.defineProperty(navigator,'webdriver',{get:()=>false}));const events=[];let external=0;
+ await ctx.route('**/*',r=>{if(r.request().url().includes('/api/ops-collect')){events.push(r.request().postDataJSON());return r.fulfill({json:{ok:true}})}if(!r.request().url().startsWith('https://qa.invalid/')){external++;return r.abort()}return r.fulfill({contentType:'text/html',body:'<html><body><main><div class="fc-detail"><h1>Neutral QA catalogue</h1><a data-affiliate-target="product-top" href="https://al.dmm.co.jp/?af_id=existing">Official details</a></div></main>'+(hasModal?'<div id="ageModal" class="age-modal"><button id="ageYes">Existing age confirmation</button></div>':'')+'</body></html>'})});
+ const page=await ctx.newPage();await page.goto('https://qa.invalid'+path);await page.addScriptTag({content:await readFile(new URL('../public/assets/app.js',import.meta.url),'utf8')});
+ if(path.includes('privacy')){assert.equal(await page.locator('#ageModal').count(),0);assert.equal(await page.locator('main').evaluate(m=>m.inert),false)}else{assert.equal(await page.locator('#ageModal.show').count(),1);assert.equal(await page.locator('main').evaluate(m=>m.inert),true)}
+ await page.addScriptTag({content:await readFile(new URL('../public/assets/ga4.js',import.meta.url),'utf8')});await page.waitForTimeout(1200);
+ if(!path.includes('privacy'))assert.equal(events.filter(e=>['catalog_list_view','product_detail_view','affiliate_impression'].includes(e.event_name)).length,0,'content behind the age dialog must not count as displayed');
+ assert.equal(external,0);results.push({path,passed:true,ageSubmission:false,externalRequests:external,displayEventsBehindDialog:0});await ctx.close();
+}
+await browser.close();await writeFile(new URL('../reports/evidence/okazu-age-tests.json',import.meta.url),JSON.stringify(results,null,2));console.log(JSON.stringify(results));

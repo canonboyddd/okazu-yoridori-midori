@@ -39,6 +39,8 @@ ASP成果/確定報酬とGSCは中央のインポート表にレコードなし�
 - collector境界4テスト: QA/owner/botが送信0、クロスオリジン拒否、大きすぎるpayload拒否、メール/キー/token/queryの除去、中央障害時502を合格。
 - Pythonリンク契約2テスト合格、既存別名義DB検証43 identities/94 namesが合格。生成された派生JSONは原本として追加していない。
 - 年齢確認の欠落/既存あり/情報ページの5経路を中立なfixtureで検証し、全件合格。年齢ボタンを押さず、実際の年齢確認を代理で送信していない。
+- `scripts/qa-revenue-browser.mjs`, `qa-age-browser.mjs`, `qa-fc2-browser.mjs` は単独repoで再実行可能（Playwrightが別の場所にある場合は `PLAYWRIGHT_MODULE` を明示）。非掲載4経路のFC2 banner通信0、掲載セール経路は表示要素あり・ASP通信は遮断を合格。本文の一覧/詳細イベントも年齢確認と非表示タブの背後では発生させない。
+- カタログID照合はquick4群169行＋100shard中3shardの1500行、合計1669行すべて一致。保護静的商品ページのCTA3本も一致。全カタログ保証ではなく、重複行を含み得る。現在の `video.dmm.co.jp/av/content/?id=...` と旧cid形式を区別し、URL/IDを勝手に再構成していない。
 - 通信遮断したEdge実ブラウザ: 画面内広告表示のみ、画面外広告なし、合成click無計測、native click1回=1クリック、FC2 click1件、QA queryで全送信0件、クエリ非送信を合格。
 - 変更前本番セールページ375/768/1440pxはHTTP200、JS例外0、横はみ出し0。年齢確認を保持。第三者画像・広告・解析は検証時に遮断。変更前後証拠は `reports/evidence/`。
 - データ生成にはAPI秘密と本番snapshotが必要。既存GitHub ActionsのFast deploy・Production QAで生成済みカタログの整合を検証し、その結果とコミットは `reports/production-verification.json` に記録する。
