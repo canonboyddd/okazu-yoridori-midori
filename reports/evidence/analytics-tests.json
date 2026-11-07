@@ -1,0 +1,12 @@
+[
+  {
+    "site": "clipmade-site",
+    "tests": "visible-only impressions, hidden CTA exclusion, synthetic-click exclusion, one native click, safe query strings",
+    "passed": true
+  },
+  {
+    "site": "okazu-yoridori-midori",
+    "tests": "visible-only impressions, hidden CTA exclusion, synthetic-click exclusion, one native click, safe query strings, FC2 click",
+    "passed": true
+  }
+]

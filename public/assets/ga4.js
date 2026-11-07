@@ -1,4 +1,9 @@
 (function () {
+  if(window.__okazuRevenueAnalytics)return;window.__okazuRevenueAnalytics=true;
+  // Apply the same exclusion before both GA4 and first-party collection.
+  const blocked=()=>navigator.webdriver===true||/bot|crawler|spider|slurp|preview|inspection|lighthouse|pagespeed|headless|phantom|selenium|puppeteer|playwright|uptime|pingdom|monitor|revenueqa/i.test(navigator.userAgent||'')||new URLSearchParams(location.search).get('ops_qa')==='1'||new URLSearchParams(location.search).get('qa')==='1'||/(?:^|;\s*)ops_owner_excluded=1(?:;|$)/.test(document.cookie||'')||(()=>{try{return localStorage.getItem('ops_owner_excluded')==='1'}catch{return false}})();
+  if(blocked()){window.trackOpsEvent=()=>{};return;}
+
   const cfg = window.GA4_CONFIG || {};
   const id = (cfg.measurementId || "").trim();
   const hasGa = /^G-[A-Z0-9]+$/i.test(id);
@@ -14,7 +19,7 @@
     s.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(id);
     document.head.appendChild(s);
     gtag("js", new Date());
-    gtag("config", id, {send_page_view: true, debug_mode: !!cfg.debugMode});
+    gtag("config", id, {send_page_view: false, debug_mode: !!cfg.debugMode, allow_google_signals:false});
   }
 
   function uuid() {
@@ -33,7 +38,7 @@
   const browserId = getStored(localStorage, "ops_browser_id");
   const sessionId = getStored(sessionStorage, "ops_session_id");
 
-  function currentPath() { return location.pathname + location.search; }
+  function currentPath() { return location.pathname; }
   function deviceType() {
     const w = Math.max(window.innerWidth || 0, document.documentElement.clientWidth || 0);
     if (w <= 767) return "mobile";
@@ -116,8 +121,10 @@
   }
 
   function sendGa(name, params) {
-    if (!hasGa) return;
-    try { gtag("event", name, params || {}); } catch (_) {}
+    if (!hasGa || blocked()) return;
+    const allowed={};for(const key of ['page_type','product_id','provider','program','placement','cta_position','outbound_domain','device_type','variant','result_count','origin_page_type'])if(params?.[key]!=null)allowed[key]=params[key];
+    allowed.page_location=location.origin+currentPath();allowed.page_referrer=referrerHost();
+    try { gtag("event", name, allowed); } catch (_) {}
   }
 
 
@@ -129,23 +136,21 @@
   }
 
   function sendOps(name, extra) {
-    if (skipOpsAnalytics()) return;
+    if (blocked() || skipOpsAnalytics()) return;
     const ctx = pageContext();
+    const dimensions={};
+    for(const key of ['provider','program','placement','cta_position','outbound_domain','variant','result_count','product_id','origin_page_path','origin_page_type'])if(extra?.[key]!=null)dimensions[key]=extra[key];
     const payload = Object.assign({
       event_name: name,
       browser_id: browserId,
       session_id: sessionId,
       page_path: currentPath(),
-      page_title: document.title,
-      referrer: document.referrer || "",
+      referrer: referrerHost(),
       device_type: deviceType(),
       provider: "FANZA",
       page_type: ctx.page_type,
-      actress: ctx.actress,
-      genre: ctx.genre,
-      maker: ctx.maker,
       product_id: ctx.product_id,
-    }, extra || {});
+    }, dimensions);
     try {
       fetch("/api/ops-collect", {
         method: "POST",
@@ -162,7 +167,13 @@
     sendOps(name, extra || {});
   };
 
+  function referrerHost(){try{return document.referrer?new URL(document.referrer).hostname:''}catch{return ''}}
   const initialCtx = pageContext();
+  sendGa('page_view',initialCtx);
+  if(['home','ranking','actress','genre','maker','sale','search'].includes(initialCtx.page_type))sendOps('catalog_list_view',{});
+  let detailSeen=false;
+  function detailView(){if(!detailSeen&&pageContext().page_type==='product'&&document.querySelector('.fc-detail h1')){detailSeen=true;sendOps('product_detail_view',{})}}
+  new MutationObserver(detailView).observe(document.body,{childList:true,subtree:true});detailView();
   sendOps("page_view", initialCtx.page_type === "product" ? attributionParams() : {});
 
   let scrolled90 = false;
@@ -192,7 +203,20 @@
     return "affiliate_link";
   }
 
-  document.addEventListener("click", function (e) {
+  function affiliateProvider(a){try{const host=new URL(a.href,location.href).hostname.toLowerCase();if(['al.dmm.co.jp','al.dmm.com','al.fanza.co.jp','al.fanza.com'].includes(host))return 'FANZA';if(host==='cnt.affiliate.fc2.com')return 'FC2';}catch{}return '';}
+  const impressionSeen=new Set(),timers=new Map();
+  if('IntersectionObserver' in window){
+    const io=new IntersectionObserver(entries=>{for(const entry of entries){const a=entry.target;clearTimeout(timers.get(a));timers.delete(a);
+      if(!entry.isIntersecting||entry.intersectionRatio<.5||document.visibilityState!=='visible'||document.getElementById('ageModal')?.classList.contains('show'))continue;
+      timers.set(a,setTimeout(()=>{timers.delete(a);if(document.visibilityState!=='visible'||document.getElementById('ageModal')?.classList.contains('show'))return;const provider=affiliateProvider(a),position=ctaPosition(a),key=provider+'|'+position+'|'+a.href;if(!provider||impressionSeen.has(key))return;impressionSeen.add(key);const extra={provider,program:provider,placement:position,cta_position:position};sendOps('affiliate_impression',extra);sendGa('affiliate_impression',extra);io.unobserve(a)},1000));
+    }},{threshold:[0,.5]});
+    const scan=()=>document.querySelectorAll('a[href]').forEach(a=>{if(affiliateProvider(a)&&!a.dataset.revenueObserved){a.dataset.revenueObserved='1';io.observe(a)}});
+    new MutationObserver(scan).observe(document.body,{subtree:true,childList:true});scan();
+    document.getElementById('ageYes')?.addEventListener('click',()=>{document.querySelectorAll('a[data-revenue-observed]').forEach(a=>{io.unobserve(a);io.observe(a)})});
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='visible'){for(const t of timers.values())clearTimeout(t);timers.clear()}else document.querySelectorAll('a[data-revenue-observed]').forEach(a=>{io.unobserve(a);io.observe(a)})});
+  }
+  function onClick(e) {
+    if(!e.isTrusted||(e.type==='auxclick'&&e.button!==1))return;
     const a = e.target.closest && e.target.closest("a[href]");
     if (!a) return;
 
@@ -204,12 +228,13 @@
     const host = u.hostname.toLowerCase();
     const path = u.pathname.toLowerCase();
 
-    if (host.includes("dmm.co.jp") || host.includes("fanza.co.jp") || host.includes("al.fanza.co.jp") || host.includes("affiliate.dmm.com")) {
+    if (affiliateProvider(a)) {
       const ctx = pageContext();
       const extra = Object.assign({}, params, ctx, attributionParams(), {
         outbound_domain: host,
-        program: "FANZA",
-        placement: a.dataset.affiliateTarget || text,
+        program: affiliateProvider(a),
+        provider: affiliateProvider(a),
+        placement: ctaPosition(a),
         cta_position: ctaPosition(a),
       });
       sendGa("affiliate_click", extra);
@@ -230,6 +255,8 @@
         window.trackOpsEvent("internal_cta_click", internalExtra);
       }
     }
-  }, true);
+  }
+  document.addEventListener("click",onClick,true);
+  document.addEventListener("auxclick",onClick,true);
 })();
 

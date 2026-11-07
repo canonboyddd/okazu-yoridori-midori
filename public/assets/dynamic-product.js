@@ -192,8 +192,8 @@
     const affiliate = esc(x.affiliateURL || '');
     const comment = excerptComment(x.comment || '');
     const commentBlock = comment ? `<section class="fc-description" aria-label="作品紹介"><div class="fc-description-title">作品紹介</div><p class="fc-description-text">${esc(comment)}</p><p class="fc-description-note">FANZA Webサービスの商品説明から、作品選びに必要な範囲を抜粋しています。</p></section>` : '';
-    const ctaTop = affiliate ? `<a class="fc-cta fc-cta-top" href="${affiliate}" target="_blank" rel="sponsored nofollow noopener noreferrer" data-affiliate-target="product-top">FANZAでこの作品を見る</a>` : '';
-    const ctaBottom = affiliate ? `<a class="fc-cta" href="${affiliate}" target="_blank" rel="sponsored nofollow noopener noreferrer" data-affiliate-target="product-bottom">FANZA公式で確認</a>` : '';
+    const ctaTop = affiliate ? `<a class="fc-cta fc-cta-top" href="${affiliate}" target="_blank" rel="sponsored nofollow noopener noreferrer" data-affiliate-target="product-top">価格・配信条件をFANZA公式で確認</a>` : '';
+    const ctaBottom = affiliate ? `<a class="fc-cta" href="${affiliate}" target="_blank" rel="sponsored nofollow noopener noreferrer" data-affiliate-target="product-bottom">この作品の販売ページを確認</a>` : '';
     const discount = Number(x.discountRate || 0) > 0 ? ` <span>${Number(x.discountRate)}%OFF</span>` : '';
     const seriesRow = series ? `<dt>シリーズ</dt><dd>${series}</dd>` : '';
     const facts = `<section class="dp-facts" aria-label="作品データの要点"><h2>作品データの要点</h2><p>${esc(factSummary(x))}</p><div class="dp-chips">${featureChips(x)}</div></section>`;

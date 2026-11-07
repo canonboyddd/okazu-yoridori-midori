@@ -52,6 +52,9 @@ jobs:
           fi
           for rel in \
             _headers \
+            assets/app.js \
+            assets/ga4.js \
+            assets/fc2-affiliate-banners.js \
             assets/affiliate-config.js \
             assets/affiliate-compliance.js \
             assets/dynamic-product.js \

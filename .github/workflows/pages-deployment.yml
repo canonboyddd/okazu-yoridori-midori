@@ -27,6 +27,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Test revenue privacy and QA exclusions
+        run: node --experimental-default-type=module --test tests/revenue-collector.test.mjs
+
       - name: Decide whether full rebuild owns this change
         id: mode
         run: |

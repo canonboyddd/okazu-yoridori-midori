@@ -63,6 +63,9 @@ jobs:
 
           for rel in \
             _headers \
+            assets/app.js \
+            assets/ga4.js \
+            assets/fc2-affiliate-banners.js \
             assets/affiliate-config.js \
             assets/affiliate-compliance.js \
             assets/dynamic-product.js \
@@ -86,6 +89,7 @@ jobs:
           echo 'Verified: stale -001/link_tool URLs are absent from deployment output.'
 
       - name: Deploy hotfix to Cloudflare Pages
+        # All snapshot routes must retain the same single-owner telemetry runtime.
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}

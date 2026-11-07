@@ -6,6 +6,7 @@ import re
 import time
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
+from urllib.parse import urlsplit, parse_qs
 
 BASE = "https://okazu-yoridori-midori.pages.dev"
 DESKTOP_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/154 Safari/537.36"
@@ -298,10 +299,17 @@ def test_product_page(cid: str, title: str, page: str) -> None:
 
 
 def validate_fanza_link(href: str) -> None:
-    status, page = fetch(href, retries=3)
-    assert_true(status == 200, f"FANZA affiliate URL returned {status}")
-    for marker in INVALID_FANZA_MARKERS:
-        assert_true(marker not in page, f"FANZA returned invalid-link marker: {marker}")
+    # Never request an affiliate click endpoint in automated QA. Check the full
+    # link contract locally; ASP approval/availability still needs owner evidence.
+    link = urlsplit(html_lib.unescape(href))
+    assert_true(link.scheme == "https" and link.hostname in {"al.dmm.co.jp", "al.dmm.com", "al.fanza.co.jp", "al.fanza.com"}, "Unexpected FANZA affiliate host")
+    assert_true(not link.username and not link.password, "Affiliate URL includes credentials")
+    params = parse_qs(link.query)
+    assert_true(params.get("af_id") == ["okazumidori-990"] and params.get("ch") == ["api"], "API affiliate ID/channel contract mismatch")
+    target = urlsplit((params.get("lurl") or [""])[0])
+    host = target.hostname or ""
+    assert_true(target.scheme == "https" and not target.username and not target.password and any(host == allowed or host.endswith("." + allowed) for allowed in ["dmm.co.jp", "dmm.com", "fanza.co.jp", "fanza.com"]), "Unexpected FANZA destination")
+    print("QA affiliate URL structure/ID/channel/destination OK; no external click sent; live ASP validity unverified")
 
 
 def main() -> None:

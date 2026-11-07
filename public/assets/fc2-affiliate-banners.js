@@ -32,11 +32,6 @@
   `;
   document.head.appendChild(style);
 
-  function track(name){
-    const payload = {affiliate_service:'FC2 Affiliate',affiliate_target:name,page_path:location.pathname};
-    if(typeof window.gtag === 'function') window.gtag('event','affiliate_click',payload);
-    else if(Array.isArray(window.dataLayer)) window.dataLayer.push({event:'affiliate_click',...payload});
-  }
 
   function fallback(a, p){
     const old = a.querySelector('img');
@@ -58,7 +53,6 @@
     a.target = '_blank';
     a.rel = 'sponsored nofollow noopener noreferrer';
     a.dataset.affiliateTarget = 'fc2-' + p.shop;
-    a.addEventListener('click',()=>track(p.name));
     if(compact){
       const strong = document.createElement('strong');
       strong.textContent = p.name;

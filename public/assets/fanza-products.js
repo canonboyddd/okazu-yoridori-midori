@@ -67,13 +67,6 @@
     a.dataset.affiliateTarget = target;
     a.rel = "sponsored nofollow noopener noreferrer";
     a.target = "_blank";
-    a.addEventListener("click", () => {
-      if (typeof window.gtag === "function") {
-        window.gtag("event", "affiliate_click", {affiliate_service:"DMM/FANZA",affiliate_target:target,page_path:location.pathname});
-      } else if (Array.isArray(window.dataLayer)) {
-        window.dataLayer.push({event:"affiliate_click",affiliate_service:"DMM/FANZA",affiliate_target:target,page_path:location.pathname});
-      }
-    });
   }
 
   function rankBadge(index) {
