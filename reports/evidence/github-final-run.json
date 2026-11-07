@@ -1,0 +1,10 @@
+{
+  "id": 42394589768,
+  "url": "https://github.com/canonboyddd/factory-career-site/actions/runs/42394589768",
+  "source_commit": "7e38e707412cb906067fa3a9efbe85dbd14c47ea",
+  "attempt": 2,
+  "status": "completed",
+  "conclusion": "success",
+  "updated_at": "2026-11-07T17:50:22Z",
+  "note": "Rerun after all five production deployments; original assertions and complete URL scope retained."
+}
