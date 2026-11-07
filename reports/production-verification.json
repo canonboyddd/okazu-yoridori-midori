@@ -1,0 +1,152 @@
+{
+  "checkedAt": "2026-11-07T17:22:57.781Z",
+  "sourceCommit": "58873149f2234b868c8b7dab5abad5fa3798d496",
+  "measurement": "Read-only HTTP or explicit QA exclusion; no affiliate endpoint visited; revenue not inferred",
+  "results": [
+    {
+      "path": "/",
+      "status": 200,
+      "url": "https://okazu-yoridori-midori.pages.dev/",
+      "canonical": "https://okazu-yoridori-midori.pages.dev/",
+      "noindex": false,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "path": "/ranking/",
+      "status": 200,
+      "url": "https://okazu-yoridori-midori.pages.dev/ranking/",
+      "canonical": "https://okazu-yoridori-midori.pages.dev/ranking/",
+      "noindex": false,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "path": "/ranking/actress/",
+      "status": 200,
+      "url": "https://okazu-yoridori-midori.pages.dev/ranking/actress/",
+      "canonical": "https://okazu-yoridori-midori.pages.dev/ranking/actress/",
+      "noindex": false,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "path": "/ranking/genre/",
+      "status": 200,
+      "url": "https://okazu-yoridori-midori.pages.dev/ranking/genre/",
+      "canonical": "https://okazu-yoridori-midori.pages.dev/ranking/genre/",
+      "noindex": false,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "path": "/ranking/maker/",
+      "status": 200,
+      "url": "https://okazu-yoridori-midori.pages.dev/ranking/maker/",
+      "canonical": "https://okazu-yoridori-midori.pages.dev/ranking/maker/",
+      "noindex": false,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "path": "/sale/",
+      "status": 200,
+      "url": "https://okazu-yoridori-midori.pages.dev/sale/",
+      "canonical": "https://okazu-yoridori-midori.pages.dev/sale/",
+      "noindex": false,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "path": "/subscription/",
+      "status": 200,
+      "url": "https://okazu-yoridori-midori.pages.dev/subscription/",
+      "canonical": "https://okazu-yoridori-midori.pages.dev/subscription/",
+      "noindex": false,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "path": "/fc2-adult/",
+      "status": 200,
+      "url": "https://okazu-yoridori-midori.pages.dev/fc2-adult/",
+      "canonical": "https://okazu-yoridori-midori.pages.dev/fc2-adult/",
+      "noindex": false,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "path": "/products/view/?id=1sods00082",
+      "status": 200,
+      "url": "https://okazu-yoridori-midori.pages.dev/products/view/?id=1sods00082",
+      "canonical": "https://okazu-yoridori-midori.pages.dev/products/view/",
+      "noindex": true,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "path": "/data/catalog-audit.json",
+      "status": 200,
+      "url": "https://okazu-yoridori-midori.pages.dev/data/catalog-audit.json",
+      "canonical": null,
+      "noindex": false,
+      "contentType": "application/json",
+      "catalogAudit": {
+        "version": 2,
+        "generatedAt": "2026-11-07T16:46:21.135415+00:00",
+        "catalogCount": 50000,
+        "rawRows": 50000,
+        "duplicateProductIds": 0,
+        "invalidProductIds": 0,
+        "missingGenre": 50,
+        "missingMaker": 0,
+        "missingActress": 20033,
+        "fullyClassifiedCount": 29953,
+        "brokenAffiliateLinks": 0,
+        "genreCount": 277,
+        "genreAssignmentCount": 378017,
+        "genreIndexAssignmentCount": 378017,
+        "genreAssignmentCheck": true,
+        "makerCount": 546,
+        "makerAssignmentCount": 50000,
+        "makerIndexAssignmentCount": 50000,
+        "makerAssignmentCheck": true,
+        "actressCatalogCount": 1185,
+        "actressAssignmentCount": 69248,
+        "actressPublishedAssignmentCount": 52940,
+        "searchIndexCount": 50000,
+        "seoPaginationPages": 6676,
+        "seoGenreBasePages": 213,
+        "seoMakerBasePages": 18,
+        "seoActressBasePages": 240,
+        "sitemapProductUrls": 7269,
+        "sitemapMissingProductPages": 0,
+        "dynamicProductViewExists": true,
+        "lookupCoverageCount": 50000
+      }
+    },
+    {
+      "path": "/robots.txt",
+      "status": 200,
+      "url": "https://okazu-yoridori-midori.pages.dev/robots.txt",
+      "canonical": null,
+      "noindex": false,
+      "contentType": "text/plain; charset=utf-8"
+    },
+    {
+      "path": "/sitemap.xml",
+      "status": 200,
+      "url": "https://okazu-yoridori-midori.pages.dev/sitemap.xml",
+      "canonical": null,
+      "noindex": false,
+      "contentType": "application/xml"
+    },
+    {
+      "path": "/revenue-qa-missing-page",
+      "status": 404,
+      "url": "https://okazu-yoridori-midori.pages.dev/revenue-qa-missing-page",
+      "canonical": "https://okazu-yoridori-midori.pages.dev/",
+      "noindex": true,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "path": "/api/ops-collect",
+      "status": 200,
+      "qaExclusion": {
+        "ok": true,
+        "excluded": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "checkedAt": "2026-11-07T17:18:42.633Z",
+  "method": "read-only first-party GET; LF-normalized SHA256",
+  "results": [
+    {
+      "file": "app.js",
+      "status": 200,
+      "normalizedSha256": "9d9a38bdf33a5c22a7197efc5326d85b04881a4a7ae93319d9c8f509defba199",
+      "sourceMatches": true,
+      "cacheControl": "public, max-age=86400, no-cache, must-revalidate"
+    },
+    {
+      "file": "ga4.js",
+      "status": 200,
+      "normalizedSha256": "91f1dfe043627d184ebeb2f725f97ca6eddb2d59fd03872582c9eb492cbb7d3c",
+      "sourceMatches": true,
+      "cacheControl": "public, max-age=86400, no-cache, must-revalidate"
+    },
+    {
+      "file": "catalog-search.js",
+      "status": 200,
+      "normalizedSha256": "c7a5bf8e77ed6e92b31491c9292f03d4ab09eb51cc8d21a20588cdb62a920206",
+      "sourceMatches": true,
+      "cacheControl": "public, max-age=86400, no-cache, must-revalidate"
+    },
+    {
+      "file": "fc2-affiliate-banners.js",
+      "status": 200,
+      "normalizedSha256": "531ab61ecc0da1e2d240de2a7d0c71968addeeaad722bf8fe17f1b5974303e0a",
+      "sourceMatches": true,
+      "cacheControl": "public, max-age=86400, no-cache, must-revalidate"
+    }
+  ]
+}

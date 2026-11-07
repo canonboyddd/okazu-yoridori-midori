@@ -44,7 +44,7 @@ ASP成果/確定報酬とGSCは中央のインポート表にレコードなし�
 - カタログID照合はquick4群169行＋100shard中3shardの1500行、合計1669行すべて一致。保護静的商品ページのCTA3本も一致。全カタログ保証ではなく、重複行を含み得る。現在の `video.dmm.co.jp/av/content/?id=...` と旧cid形式を区別し、URL/IDを勝手に再構成していない。
 - 通信遮断したEdge実ブラウザ: 画面内広告表示のみ、画面外広告なし、合成click無計測、native click1回=1クリック、FC2 click1件、QA queryで全送信0件、クエリ非送信を合格。
 - 変更前本番セールページ375/768/1440pxはHTTP200、JS例外0、横はみ出し0。年齢確認を保持。第三者画像・広告・解析は検証時に遮断。変更前後証拠は `reports/evidence/`。
-- データ生成にはAPI秘密と本番snapshotが必要。既存GitHub ActionsのFast deploy・Production QAで生成済みカタログの整合を検証し、その結果とコミットは `reports/production-verification.json` に記録する。
+- データ生成は既存GitHub Actionsの秘密設定とsnapshotを使用。Fast deploy・Production QAの成功結果とコミットを `reports/production-verification.json` に記録済み。
 
 ## 継続判定・残るブロッカー
 
@@ -56,4 +56,22 @@ GSC・ASP CSV・管理画面上の承認/規約/販売終了情報は未取得�
 
 初回実装コミット `c1bec3211f3baf3050bd4be23b71bebb563622e6` のFast deployは、CI Nodeランタイムで廃止された実験フラグと、production-public artifactの期限切れで停止。正式なpackage.jsonのtype:moduleに切り替え `adf1821` で回帰合格。既存定期dispatcherはcheckoutがないのにリポジトリを省略してghを呼び、直近の更新が失敗していた。`947d519b765de93e8bfdd27527e93412f0da711c` で `--repo "$GITHUB_REPOSITORY"` を明記し、dispatcher変更時の既存更新実行、保存期間7日（二回の3日周期）へ修正。
 
-既存dispatcher run `42392509113` がsuccess、既存Daily FANZA refresh `42392515177` が実行開始。新規ホスティング経路・新しいASP ID・D1データ削除は追加していない。生成途中を本番へ配信せず、既存ビルド検証を満たした後にのみ既存Cloudflare deployで反映する。
+既存dispatcher run `42392509113` とDaily FANZA refresh `42392515177` がsuccess。新規ホスティング経路・新しいASP ID・D1データ削除は追加していない。生成途中を本番へ配信せず、既存ビルド検証を満たした後に既存Cloudflare deployで反映した。
+
+## 最終本番結果
+
+- 最新公開実装 `58873149f2234b868c8b7dab5abad5fa3798d496`。Cloudflare production deployment `737d41b7-59bb-40d0-aaf9-f352d8d67366` がsuccess。Fast deploy `42395674069` と既存Production QA `42395879728` がともにsuccess。
+- 後続の `c477d70` はreports-only変更を既存Fast deployから除外する運用設定。監査追記のmainと公開artifactのSHA差は意図的であり、public runtimeの差ではない。
+- 主要ページ/ランキング/分類/月額比較/FC2/動的商品、robots、sitemap、catalog auditは200、未知URLは404。QA collectorは明示的除外応答。app/ga4/catalog-search/FC2の4JSは本番とソースのLF正規化SHA256が一致。
+- 本番構造監査: catalog 50,000、重複ID0、無効ID0、形式上のaffiliate link不備0、sitemap404Risk0。これはASP管理画面や販売先の生存確認ではない。メーカー未取得0、ジャンル未取得50、出演者未取得20,033、全分類あり29,953という実データの欠損をそのまま保持し、架空補完していない。
+- 既存カタログ・検索・別名義・動的商品・関連分類のProduction QAを第一者URL以外の強制遮断下でも合格。ログはUTF-8で `reports/evidence/production-qa.log` に保存。
+- Android/タブレット/PC UA、375/768/1440pxの年齢確認画面でJS例外0・横はみ出し0。年齢確認を代行送信していないため、本番本文の広告クリックや年齢確認後の外部画像表示は実操作で確認していない。本文機能/イベントは中立fixtureとHTTPで検証。第三者画像・ASP・解析通信は遮断した。
+- 5サイト統合QAは5tests成功、失敗/skip/flaky0。本サイトの15,954 sitemap URLと47ホーム内部リンクを含む全16,787 URL/155リンクでdirect200・canonical・noindex整合・重複なしを確認。通常PVの単一化とbot/QA送信0も確認した。`five-site-final-summary.json`参照。
+
+## 未提供の公式商品説明と補助ジョブ
+
+補助description enrichment `42395124831` attempt2は50,000商品すべて照合したが、今回APIで公式commentを取得できた商品は0、更新行0だった。`Verify description enrichment` が「公式説明なし」で停止し、デプロイへ進まなかった。最新Fastの配信・既存Production QA・5サイト統合QAの成功とは区別する。成功に見せるための検査削除・架空の商品説明・レビュー作成は行っていない。
+
+公開ページは取得済み価格/日付/メーカー/分類等の事実要約と関連作品を用いる既存の代替表示で動作する。公式説明がAPI等の正規データとして取得可能になった場合のみ、この補助処理を再実行し、引用元/内容/保持済みデータとの整合と元の検証を通す。現在のASP承認・確定報酬・全販売先生存も引き続き未取得。
+
+旧補助ジョブを停止する案は、保存済み認証情報の取得を伴うため自動承認レビューに拒否された。停止スクリプトは実行されず、認証情報も取得していない。その経路は再試行せず、既存ジョブの上記の自然終了を確認した。Computer UseもURL確認の制約で終了し、既存GitHubワークフローで作業を継続した。

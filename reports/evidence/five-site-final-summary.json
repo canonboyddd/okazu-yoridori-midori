@@ -1,0 +1,57 @@
+{
+  "source": "five-site-final-playwright.json",
+  "scope": [
+    "factory",
+    "sugutsucool",
+    "car-bike",
+    "okazu",
+    "clipmade"
+  ],
+  "started_at": "2026-11-07T17:19:22.896Z",
+  "duration_ms": 683330.789,
+  "tests_passed": 5,
+  "tests_failed": 0,
+  "tests_skipped": 0,
+  "seo": [
+    {
+      "site": "factory",
+      "sitemap_urls": 99,
+      "home_links": 35
+    },
+    {
+      "site": "sugutsucool",
+      "sitemap_urls": 260,
+      "home_links": 49
+    },
+    {
+      "site": "car-bike",
+      "sitemap_urls": 428,
+      "home_links": 15
+    },
+    {
+      "site": "okazu",
+      "sitemap_urls": 15954,
+      "home_links": 47
+    },
+    {
+      "site": "clipmade",
+      "sitemap_urls": 46,
+      "home_links": 9
+    }
+  ],
+  "sitemap_urls_total": 16787,
+  "home_links_total": 155,
+  "production_analytics_writes": 0,
+  "asp_submissions_or_purchases": 0,
+  "external_asp_requests_allowed": 0,
+  "age_confirmation_submitted": false,
+  "canonical_page_view_per_store": "passed",
+  "car_client_central_forwarding": "absent",
+  "automated_qa_telemetry_requests": 0,
+  "raw_receipt_contract": "passed",
+  "notes": [
+    "All original URL/indexability/HTTP/canonical assertions retained.",
+    "Default all-five scope used; site filters were empty.",
+    "Execution completed inside the original 15-minute timeout."
+  ]
+}

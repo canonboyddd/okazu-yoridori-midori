@@ -1,0 +1,18 @@
+QA FC2: desktop/mobile readable compact layout OK
+QA aliases: 29 resolved groups; sample=乃木蛍
+QA genres: catalog=50000; sample=ハイビジョン full_count=43876 shards=18 loader=20260929-0825
+QA makers: catalog=50000; sample=ムーディーズ full_count=1169 shards=0 loader=20260929-0825
+QA actresss: catalog=50000; sample=逢沢みゆ full_count=391 shards=0 loader=20260929-0825
+QA genre SEO pagination: page 2 live for ハイビジョン
+QA maker SEO pagination: page 2 live for ムーディーズ
+QA actress SEO pagination: page 2 live for 逢沢みゆ
+QA advanced search: 50000 products across 10 Cloudflare-safe shards loader=20260928-2348
+QA catalog audit: catalog=50000, fullyClassified=29953, missingGenre=50, missingMaker=0, missingActress=20033, actressCatalogs=1185, seoPages=6676, duplicates=0, brokenAffiliate=0, sitemap404Risk=0
+QA catalog UI: genre/maker/actress sort and filter controls OK
+QA analytics: affiliate dimensions and source attribution prepared for existing central dashboard
+QA dynamic product related actress: 1101001 OK
+QA dynamic product related maker: 46629 OK
+QA dynamic product related genre: 6925 OK
+QA dynamic product: kiwvr00926 / 【VR】【8K】スケベ過ぎる下品なムチムチビッチW痴女たちがオイルまみれになりな / shard=1; comment_sample_coverage=0/2000; factual summary + related actress/maker/genre sections verified
+QA affiliate URL structure/ID/channel/destination OK; no external click sent; live ASP validity unverified
+Production QA passed
