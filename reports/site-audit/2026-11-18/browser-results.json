@@ -1,0 +1,1976 @@
+{
+ "site": "okazu",
+ "name": "おかずよりどりみどり",
+ "base": "https://okazu-yoridori-midori.pages.dev",
+ "auditDate": "2026-11-18",
+ "safety": {
+  "browser": "Playwright 1.65.0 / Chromium（ヘッドレス）。Claude in Chrome拡張は未接続だったため代替した。",
+  "viewports": "375x812（モバイル）/ 768x1024（タブレット）/ 1440x900（PC）",
+  "analytics": "navigator.webdriver=true・除外Cookie・計測エンドポイントのモック応答で、本番計測への書き込みは0件。",
+  "asp": "ASP/広告主ホストへの通信は全て遮断。広告クリックはローカルの模擬LPで応答。実トラッキングURLへの到達は0件。",
+  "forms": "第三者サービスへの申込み・購入・登録・メール送信は0件。自サイトの計算・診断フォームのみ操作。",
+  "ageGate": "年齢確認ダイアログは一度も代行で通過していない。成人向け画像を含むスクリーンショットは保存していない。"
+ },
+ "navigation": {
+  "before": [
+   {
+    "path": "/",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "30秒で好みの作品を決める | オカズはよりどりみどり",
+    "h1": "探すより、候補を絞ってもらう。",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/sale/",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZAセール作品｜割引率順",
+    "h1": "FANZAセール作品",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/ranking/",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA人気ランキング・人気女優・女優50音検索・ジャンル別・メーカー別比較 | オカズはよりどりみどり",
+    "h1": "FANZA人気ランキング",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/ranking/actress/",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "女優50音検索｜DMM/FANZA人気順で収録",
+    "h1": "女優50音検索",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/ranking/genre/",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA ジャンル一覧・ランキング｜約100件",
+    "h1": "ジャンルから探す",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/ranking/maker/",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA メーカー一覧・ランキング｜約100件",
+    "h1": "メーカーから探す",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/products/",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA作品一覧 1/834",
+    "h1": "FANZA作品一覧",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/products/hmn00754/",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "逢沢みゆ・西元めいさ出演｜わたしたち、放課後、ちょっとエッチなオトナ体験しました 逢沢みゆ 西元めいさ 北岡果林 柏木こなつ｜FANZA作品情報",
+    "h1": "わたしたち、放課後、ちょっとエッチなオトナ体験しました 逢沢みゆ 西元めいさ 北岡果林 柏木こなつ",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/products/view/",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "作品情報",
+    "h1": "作品IDが見つかりませんでした",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/search/",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA 50,000作品を条件検索｜オカズはよりどりみどり",
+    "h1": "FANZA 50,000作品をまとめて検索",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/fc2-adult/",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FC2アダルトランキング・動画・写真・電子書籍・セール | オカズはよりどりみどり",
+    "h1": "FC2アダルト",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/momoiro-lab/",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "桃色ラボ FANZA同人作品一覧 | オカズはよりどりみどり",
+    "h1": "桃色ラボ 作品一覧",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/subscription/",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA見放題・月額プラン比較 | オカズはよりどりみどり",
+    "h1": "FANZA見放題・月額プラン比較",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/all-guides/",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "全ガイド一覧 | オカズはよりどりみどり",
+    "h1": "全ガイド一覧",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/guide/",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA初心者ガイド | オカズはよりどりみどり",
+    "h1": "FANZA初心者ガイド",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/about.html",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "サイトについて | オカズはよりどりみどり",
+    "h1": "サイトについて",
+    "ageDialog": false,
+    "error": null
+   },
+   {
+    "path": "/privacy.html",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "プライバシーポリシー | オカズはよりどりみどり",
+    "h1": "プライバシーポリシー",
+    "ageDialog": false,
+    "error": null
+   },
+   {
+    "path": "/editorial-policy/",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "編集方針・運営方針 | オカズはよりどりみどり",
+    "h1": "編集方針・運営方針",
+    "ageDialog": false,
+    "error": null
+   },
+   {
+    "path": "/articles/sale-guide",
+    "viewport": "375",
+    "rendered": false,
+    "error": "page.goto: Download is starting"
+   },
+   {
+    "path": "/articles/sale-guide.html",
+    "viewport": "375",
+    "status": 404,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "ページが見つかりません | オカズはよりどりみどり",
+    "h1": "ページが見つかりません",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/about",
+    "viewport": "375",
+    "rendered": false,
+    "error": "page.goto: Download is starting"
+   },
+   {
+    "path": "/privacy",
+    "viewport": "375",
+    "rendered": false,
+    "error": "page.goto: Download is starting"
+   },
+   {
+    "path": "/__not-found-audit__",
+    "viewport": "375",
+    "status": 404,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "ページが見つかりません | オカズはよりどりみどり",
+    "h1": "ページが見つかりません",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "30秒で好みの作品を決める | オカズはよりどりみどり",
+    "h1": "探すより、候補を絞ってもらう。",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/sale/",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZAセール作品｜割引率順",
+    "h1": "FANZAセール作品",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/ranking/",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA人気ランキング・人気女優・女優50音検索・ジャンル別・メーカー別比較 | オカズはよりどりみどり",
+    "h1": "FANZA人気ランキング",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/ranking/actress/",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "女優50音検索｜DMM/FANZA人気順で収録",
+    "h1": "女優50音検索",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/ranking/genre/",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA ジャンル一覧・ランキング｜約100件",
+    "h1": "ジャンルから探す",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/ranking/maker/",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA メーカー一覧・ランキング｜約100件",
+    "h1": "メーカーから探す",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/products/",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA作品一覧 1/834",
+    "h1": "FANZA作品一覧",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/products/hmn00754/",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "逢沢みゆ・西元めいさ出演｜わたしたち、放課後、ちょっとエッチなオトナ体験しました 逢沢みゆ 西元めいさ 北岡果林 柏木こなつ｜FANZA作品情報",
+    "h1": "わたしたち、放課後、ちょっとエッチなオトナ体験しました 逢沢みゆ 西元めいさ 北岡果林 柏木こなつ",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/products/view/",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "作品情報",
+    "h1": "作品IDが見つかりませんでした",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/search/",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA 50,000作品を条件検索｜オカズはよりどりみどり",
+    "h1": "FANZA 50,000作品をまとめて検索",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/fc2-adult/",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FC2アダルトランキング・動画・写真・電子書籍・セール | オカズはよりどりみどり",
+    "h1": "FC2アダルト",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/momoiro-lab/",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "桃色ラボ FANZA同人作品一覧 | オカズはよりどりみどり",
+    "h1": "桃色ラボ 作品一覧",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/subscription/",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA見放題・月額プラン比較 | オカズはよりどりみどり",
+    "h1": "FANZA見放題・月額プラン比較",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/all-guides/",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "全ガイド一覧 | オカズはよりどりみどり",
+    "h1": "全ガイド一覧",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/guide/",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA初心者ガイド | オカズはよりどりみどり",
+    "h1": "FANZA初心者ガイド",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/about.html",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "サイトについて | オカズはよりどりみどり",
+    "h1": "サイトについて",
+    "ageDialog": false,
+    "error": null
+   },
+   {
+    "path": "/privacy.html",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "プライバシーポリシー | オカズはよりどりみどり",
+    "h1": "プライバシーポリシー",
+    "ageDialog": false,
+    "error": null
+   },
+   {
+    "path": "/editorial-policy/",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "編集方針・運営方針 | オカズはよりどりみどり",
+    "h1": "編集方針・運営方針",
+    "ageDialog": false,
+    "error": null
+   },
+   {
+    "path": "/articles/sale-guide",
+    "viewport": "768",
+    "rendered": false,
+    "error": "page.goto: Download is starting"
+   },
+   {
+    "path": "/articles/sale-guide.html",
+    "viewport": "768",
+    "status": 404,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "ページが見つかりません | オカズはよりどりみどり",
+    "h1": "ページが見つかりません",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/about",
+    "viewport": "768",
+    "rendered": false,
+    "error": "page.goto: Download is starting"
+   },
+   {
+    "path": "/privacy",
+    "viewport": "768",
+    "rendered": false,
+    "error": "page.goto: Download is starting"
+   },
+   {
+    "path": "/__not-found-audit__",
+    "viewport": "768",
+    "status": 404,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "ページが見つかりません | オカズはよりどりみどり",
+    "h1": "ページが見つかりません",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "30秒で好みの作品を決める | オカズはよりどりみどり",
+    "h1": "探すより、候補を絞ってもらう。",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/sale/",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZAセール作品｜割引率順",
+    "h1": "FANZAセール作品",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/ranking/",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA人気ランキング・人気女優・女優50音検索・ジャンル別・メーカー別比較 | オカズはよりどりみどり",
+    "h1": "FANZA人気ランキング",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/ranking/actress/",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "女優50音検索｜DMM/FANZA人気順で収録",
+    "h1": "女優50音検索",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/ranking/genre/",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA ジャンル一覧・ランキング｜約100件",
+    "h1": "ジャンルから探す",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/ranking/maker/",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA メーカー一覧・ランキング｜約100件",
+    "h1": "メーカーから探す",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/products/",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA作品一覧 1/834",
+    "h1": "FANZA作品一覧",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/products/hmn00754/",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "逢沢みゆ・西元めいさ出演｜わたしたち、放課後、ちょっとエッチなオトナ体験しました 逢沢みゆ 西元めいさ 北岡果林 柏木こなつ｜FANZA作品情報",
+    "h1": "わたしたち、放課後、ちょっとエッチなオトナ体験しました 逢沢みゆ 西元めいさ 北岡果林 柏木こなつ",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/products/view/",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "作品情報",
+    "h1": "作品IDが見つかりませんでした",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/search/",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA 50,000作品を条件検索｜オカズはよりどりみどり",
+    "h1": "FANZA 50,000作品をまとめて検索",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/fc2-adult/",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FC2アダルトランキング・動画・写真・電子書籍・セール | オカズはよりどりみどり",
+    "h1": "FC2アダルト",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/momoiro-lab/",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "桃色ラボ FANZA同人作品一覧 | オカズはよりどりみどり",
+    "h1": "桃色ラボ 作品一覧",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/subscription/",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA見放題・月額プラン比較 | オカズはよりどりみどり",
+    "h1": "FANZA見放題・月額プラン比較",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/all-guides/",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "全ガイド一覧 | オカズはよりどりみどり",
+    "h1": "全ガイド一覧",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/guide/",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA初心者ガイド | オカズはよりどりみどり",
+    "h1": "FANZA初心者ガイド",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/about.html",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "サイトについて | オカズはよりどりみどり",
+    "h1": "サイトについて",
+    "ageDialog": false,
+    "error": null
+   },
+   {
+    "path": "/privacy.html",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "プライバシーポリシー | オカズはよりどりみどり",
+    "h1": "プライバシーポリシー",
+    "ageDialog": false,
+    "error": null
+   },
+   {
+    "path": "/editorial-policy/",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "編集方針・運営方針 | オカズはよりどりみどり",
+    "h1": "編集方針・運営方針",
+    "ageDialog": false,
+    "error": null
+   },
+   {
+    "path": "/articles/sale-guide",
+    "viewport": "1440",
+    "rendered": false,
+    "error": "page.goto: Download is starting"
+   },
+   {
+    "path": "/articles/sale-guide.html",
+    "viewport": "1440",
+    "status": 404,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "ページが見つかりません | オカズはよりどりみどり",
+    "h1": "ページが見つかりません",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/about",
+    "viewport": "1440",
+    "rendered": false,
+    "error": "page.goto: Download is starting"
+   },
+   {
+    "path": "/privacy",
+    "viewport": "1440",
+    "rendered": false,
+    "error": "page.goto: Download is starting"
+   },
+   {
+    "path": "/__not-found-audit__",
+    "viewport": "1440",
+    "status": 404,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "ページが見つかりません | オカズはよりどりみどり",
+    "h1": "ページが見つかりません",
+    "ageDialog": true,
+    "error": null
+   }
+  ],
+  "after": [
+   {
+    "path": "/",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "30秒で好みの作品を決める | オカズはよりどりみどり",
+    "h1": "探すより、候補を絞ってもらう。",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/sale/",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZAセール作品｜割引率順",
+    "h1": "FANZAセール作品",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/ranking/",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA人気ランキング・人気女優・女優50音検索・ジャンル別・メーカー別比較 | オカズはよりどりみどり",
+    "h1": "FANZA人気ランキング",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/products/",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA作品一覧 1/834",
+    "h1": "FANZA作品一覧",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/products/hmn00754/",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "逢沢みゆ・西元めいさ出演｜わたしたち、放課後、ちょっとエッチなオトナ体験しました 逢沢みゆ 西元めいさ 北岡果林 柏木こなつ｜FANZA作品情報",
+    "h1": "わたしたち、放課後、ちょっとエッチなオトナ体験しました 逢沢みゆ 西元めいさ 北岡果林 柏木こなつ",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/search/",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA 50,000作品を条件検索｜オカズはよりどりみどり",
+    "h1": "FANZA 50,000作品をまとめて検索",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/fc2-adult/",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FC2アダルトランキング・動画・写真・電子書籍・セール | オカズはよりどりみどり",
+    "h1": "FC2アダルト",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/all-guides/",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "全ガイド一覧 | オカズはよりどりみどり",
+    "h1": "全ガイド一覧",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/guide/",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA初心者ガイド | オカズはよりどりみどり",
+    "h1": "FANZA初心者ガイド",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/about",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "サイトについて | オカズはよりどりみどり",
+    "h1": "サイトについて",
+    "ageDialog": false,
+    "error": null
+   },
+   {
+    "path": "/privacy",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "プライバシーポリシー | オカズはよりどりみどり",
+    "h1": "プライバシーポリシー",
+    "ageDialog": false,
+    "error": null
+   },
+   {
+    "path": "/about.html",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "サイトについて | オカズはよりどりみどり",
+    "h1": "サイトについて",
+    "ageDialog": false,
+    "error": null
+   },
+   {
+    "path": "/editorial-policy/",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "編集方針・運営方針 | オカズはよりどりみどり",
+    "h1": "編集方針・運営方針",
+    "ageDialog": false,
+    "error": null
+   },
+   {
+    "path": "/articles/sale-guide",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZAのセールを探すときの見方と注意点 | オカズはよりどりみどり",
+    "h1": "FANZAのセールを探すときの見方と注意点",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/articles/sale-guide.html",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZAのセールを探すときの見方と注意点 | オカズはよりどりみどり",
+    "h1": "FANZAのセールを探すときの見方と注意点",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/articles/fanza-beginner",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZAとは？初めて使う前に知っておきたい基本 | オカズはよりどりみどり",
+    "h1": "FANZAとは？初めて使う前に知っておきたい基本",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/articles/before-buy-checklist",
+    "viewport": "375",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZAで購入する前のチェックリスト7項目 | オカズはよりどりみどり",
+    "h1": "FANZAで購入する前のチェックリスト7項目",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/__not-found-audit__",
+    "viewport": "375",
+    "status": 404,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "ページが見つかりません | オカズはよりどりみどり",
+    "h1": "ページが見つかりません",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "30秒で好みの作品を決める | オカズはよりどりみどり",
+    "h1": "探すより、候補を絞ってもらう。",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/sale/",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZAセール作品｜割引率順",
+    "h1": "FANZAセール作品",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/ranking/",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA人気ランキング・人気女優・女優50音検索・ジャンル別・メーカー別比較 | オカズはよりどりみどり",
+    "h1": "FANZA人気ランキング",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/products/",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA作品一覧 1/834",
+    "h1": "FANZA作品一覧",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/products/hmn00754/",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "逢沢みゆ・西元めいさ出演｜わたしたち、放課後、ちょっとエッチなオトナ体験しました 逢沢みゆ 西元めいさ 北岡果林 柏木こなつ｜FANZA作品情報",
+    "h1": "わたしたち、放課後、ちょっとエッチなオトナ体験しました 逢沢みゆ 西元めいさ 北岡果林 柏木こなつ",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/search/",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA 50,000作品を条件検索｜オカズはよりどりみどり",
+    "h1": "FANZA 50,000作品をまとめて検索",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/fc2-adult/",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FC2アダルトランキング・動画・写真・電子書籍・セール | オカズはよりどりみどり",
+    "h1": "FC2アダルト",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/all-guides/",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "全ガイド一覧 | オカズはよりどりみどり",
+    "h1": "全ガイド一覧",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/guide/",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA初心者ガイド | オカズはよりどりみどり",
+    "h1": "FANZA初心者ガイド",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/about",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "サイトについて | オカズはよりどりみどり",
+    "h1": "サイトについて",
+    "ageDialog": false,
+    "error": null
+   },
+   {
+    "path": "/privacy",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "プライバシーポリシー | オカズはよりどりみどり",
+    "h1": "プライバシーポリシー",
+    "ageDialog": false,
+    "error": null
+   },
+   {
+    "path": "/about.html",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "サイトについて | オカズはよりどりみどり",
+    "h1": "サイトについて",
+    "ageDialog": false,
+    "error": null
+   },
+   {
+    "path": "/editorial-policy/",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "編集方針・運営方針 | オカズはよりどりみどり",
+    "h1": "編集方針・運営方針",
+    "ageDialog": false,
+    "error": null
+   },
+   {
+    "path": "/articles/sale-guide",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZAのセールを探すときの見方と注意点 | オカズはよりどりみどり",
+    "h1": "FANZAのセールを探すときの見方と注意点",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/articles/sale-guide.html",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZAのセールを探すときの見方と注意点 | オカズはよりどりみどり",
+    "h1": "FANZAのセールを探すときの見方と注意点",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/articles/fanza-beginner",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZAとは？初めて使う前に知っておきたい基本 | オカズはよりどりみどり",
+    "h1": "FANZAとは？初めて使う前に知っておきたい基本",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/articles/before-buy-checklist",
+    "viewport": "768",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZAで購入する前のチェックリスト7項目 | オカズはよりどりみどり",
+    "h1": "FANZAで購入する前のチェックリスト7項目",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/__not-found-audit__",
+    "viewport": "768",
+    "status": 404,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "ページが見つかりません | オカズはよりどりみどり",
+    "h1": "ページが見つかりません",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "30秒で好みの作品を決める | オカズはよりどりみどり",
+    "h1": "探すより、候補を絞ってもらう。",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/sale/",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZAセール作品｜割引率順",
+    "h1": "FANZAセール作品",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/ranking/",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA人気ランキング・人気女優・女優50音検索・ジャンル別・メーカー別比較 | オカズはよりどりみどり",
+    "h1": "FANZA人気ランキング",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/products/",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA作品一覧 1/834",
+    "h1": "FANZA作品一覧",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/products/hmn00754/",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "逢沢みゆ・西元めいさ出演｜わたしたち、放課後、ちょっとエッチなオトナ体験しました 逢沢みゆ 西元めいさ 北岡果林 柏木こなつ｜FANZA作品情報",
+    "h1": "わたしたち、放課後、ちょっとエッチなオトナ体験しました 逢沢みゆ 西元めいさ 北岡果林 柏木こなつ",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/search/",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA 50,000作品を条件検索｜オカズはよりどりみどり",
+    "h1": "FANZA 50,000作品をまとめて検索",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/fc2-adult/",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FC2アダルトランキング・動画・写真・電子書籍・セール | オカズはよりどりみどり",
+    "h1": "FC2アダルト",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/all-guides/",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "全ガイド一覧 | オカズはよりどりみどり",
+    "h1": "全ガイド一覧",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/guide/",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZA初心者ガイド | オカズはよりどりみどり",
+    "h1": "FANZA初心者ガイド",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/about",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "サイトについて | オカズはよりどりみどり",
+    "h1": "サイトについて",
+    "ageDialog": false,
+    "error": null
+   },
+   {
+    "path": "/privacy",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "プライバシーポリシー | オカズはよりどりみどり",
+    "h1": "プライバシーポリシー",
+    "ageDialog": false,
+    "error": null
+   },
+   {
+    "path": "/about.html",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "サイトについて | オカズはよりどりみどり",
+    "h1": "サイトについて",
+    "ageDialog": false,
+    "error": null
+   },
+   {
+    "path": "/editorial-policy/",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "編集方針・運営方針 | オカズはよりどりみどり",
+    "h1": "編集方針・運営方針",
+    "ageDialog": false,
+    "error": null
+   },
+   {
+    "path": "/articles/sale-guide",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZAのセールを探すときの見方と注意点 | オカズはよりどりみどり",
+    "h1": "FANZAのセールを探すときの見方と注意点",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/articles/sale-guide.html",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZAのセールを探すときの見方と注意点 | オカズはよりどりみどり",
+    "h1": "FANZAのセールを探すときの見方と注意点",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/articles/fanza-beginner",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZAとは？初めて使う前に知っておきたい基本 | オカズはよりどりみどり",
+    "h1": "FANZAとは？初めて使う前に知っておきたい基本",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/articles/before-buy-checklist",
+    "viewport": "1440",
+    "status": 200,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "FANZAで購入する前のチェックリスト7項目 | オカズはよりどりみどり",
+    "h1": "FANZAで購入する前のチェックリスト7項目",
+    "ageDialog": true,
+    "error": null
+   },
+   {
+    "path": "/__not-found-audit__",
+    "viewport": "1440",
+    "status": 404,
+    "contentType": "text/html; charset=utf-8",
+    "rendered": true,
+    "title": "ページが見つかりません | オカズはよりどりみどり",
+    "h1": "ページが見つかりません",
+    "ageDialog": true,
+    "error": null
+   }
+  ]
+ },
+ "affiliateStaticInventory": [
+  {
+   "path": "/",
+   "viewport": "375",
+   "ageDialogShown": true,
+   "bodyScrollLocked": true,
+   "prLabel": true,
+   "stats": {
+    "total": 2,
+    "byHost": {
+     "cnt.affiliate.fc2.com": 1,
+     "affiliate.dmm.com": 1
+    },
+    "afIds": {},
+    "channels": {},
+    "relMissing": 0,
+    "notBlank": 0,
+    "http": 0,
+    "inertOk": 2,
+    "lurlHosts": {},
+    "productIdMatch": 0,
+    "productIdMismatch": 0
+   }
+  },
+  {
+   "path": "/sale/",
+   "viewport": "375",
+   "ageDialogShown": true,
+   "bodyScrollLocked": true,
+   "prLabel": true,
+   "stats": {
+    "total": 2,
+    "byHost": {
+     "cnt.affiliate.fc2.com": 1,
+     "affiliate.dmm.com": 1
+    },
+    "afIds": {},
+    "channels": {},
+    "relMissing": 0,
+    "notBlank": 0,
+    "http": 0,
+    "inertOk": 2,
+    "lurlHosts": {},
+    "productIdMatch": 0,
+    "productIdMismatch": 0
+   }
+  },
+  {
+   "path": "/ranking/",
+   "viewport": "375",
+   "ageDialogShown": true,
+   "bodyScrollLocked": true,
+   "prLabel": true,
+   "stats": {
+    "total": 30,
+    "byHost": {
+     "cnt.affiliate.fc2.com": 1,
+     "al.fanza.co.jp": 27,
+     "affiliate.dmm.com": 2
+    },
+    "afIds": {
+     "okazumidori-990": 27
+    },
+    "channels": {
+     "api": 27
+    },
+    "relMissing": 0,
+    "notBlank": 0,
+    "http": 0,
+    "inertOk": 30,
+    "lurlHosts": {
+     "video.dmm.co.jp": 27
+    },
+    "productIdMatch": 0,
+    "productIdMismatch": 0
+   }
+  },
+  {
+   "path": "/ranking/genre/",
+   "viewport": "375",
+   "ageDialogShown": true,
+   "bodyScrollLocked": true,
+   "prLabel": true,
+   "stats": {
+    "total": 3,
+    "byHost": {
+     "cnt.affiliate.fc2.com": 1,
+     "affiliate.dmm.com": 2
+    },
+    "afIds": {},
+    "channels": {},
+    "relMissing": 0,
+    "notBlank": 0,
+    "http": 0,
+    "inertOk": 3,
+    "lurlHosts": {},
+    "productIdMatch": 0,
+    "productIdMismatch": 0
+   }
+  },
+  {
+   "path": "/products/",
+   "viewport": "375",
+   "ageDialogShown": true,
+   "bodyScrollLocked": true,
+   "prLabel": true,
+   "stats": {
+    "total": 2,
+    "byHost": {
+     "cnt.affiliate.fc2.com": 1,
+     "affiliate.dmm.com": 1
+    },
+    "afIds": {},
+    "channels": {},
+    "relMissing": 0,
+    "notBlank": 0,
+    "http": 0,
+    "inertOk": 2,
+    "lurlHosts": {},
+    "productIdMatch": 0,
+    "productIdMismatch": 0
+   }
+  },
+  {
+   "path": "/products/hmn00754/",
+   "viewport": "375",
+   "ageDialogShown": true,
+   "bodyScrollLocked": true,
+   "prLabel": true,
+   "stats": {
+    "total": 5,
+    "byHost": {
+     "cnt.affiliate.fc2.com": 1,
+     "al.fanza.co.jp": 3,
+     "affiliate.dmm.com": 1
+    },
+    "afIds": {
+     "okazumidori-990": 3
+    },
+    "channels": {
+     "api": 3
+    },
+    "relMissing": 0,
+    "notBlank": 0,
+    "http": 0,
+    "inertOk": 5,
+    "lurlHosts": {
+     "video.dmm.co.jp": 3
+    },
+    "productIdMatch": 2,
+    "productIdMismatch": 0
+   }
+  },
+  {
+   "path": "/products/exvr00858/",
+   "viewport": "375",
+   "ageDialogShown": true,
+   "bodyScrollLocked": true,
+   "prLabel": true,
+   "stats": {
+    "total": 5,
+    "byHost": {
+     "cnt.affiliate.fc2.com": 1,
+     "al.fanza.co.jp": 3,
+     "affiliate.dmm.com": 1
+    },
+    "afIds": {
+     "okazumidori-990": 3
+    },
+    "channels": {
+     "api": 3
+    },
+    "relMissing": 0,
+    "notBlank": 0,
+    "http": 0,
+    "inertOk": 5,
+    "lurlHosts": {
+     "video.dmm.co.jp": 3
+    },
+    "productIdMatch": 2,
+    "productIdMismatch": 0
+   }
+  },
+  {
+   "path": "/fc2-adult/",
+   "viewport": "375",
+   "ageDialogShown": true,
+   "bodyScrollLocked": true,
+   "prLabel": true,
+   "stats": {
+    "total": 14,
+    "byHost": {
+     "adult.contents.fc2.com": 11,
+     "cnt.affiliate.fc2.com": 2,
+     "affiliate.dmm.com": 1
+    },
+    "afIds": {},
+    "channels": {},
+    "relMissing": 11,
+    "notBlank": 0,
+    "http": 0,
+    "inertOk": 14,
+    "lurlHosts": {},
+    "productIdMatch": 0,
+    "productIdMismatch": 0
+   }
+  },
+  {
+   "path": "/momoiro-lab/",
+   "viewport": "375",
+   "ageDialogShown": true,
+   "bodyScrollLocked": true,
+   "prLabel": true,
+   "stats": {
+    "total": 7,
+    "byHost": {
+     "al.fanza.co.jp": 6,
+     "affiliate.dmm.com": 1
+    },
+    "afIds": {
+     "okazumidori-990": 6
+    },
+    "channels": {
+     "api": 6
+    },
+    "relMissing": 0,
+    "notBlank": 0,
+    "http": 0,
+    "inertOk": 7,
+    "lurlHosts": {
+     "www.dmm.co.jp": 6
+    },
+    "productIdMatch": 0,
+    "productIdMismatch": 0
+   }
+  },
+  {
+   "path": "/subscription/",
+   "viewport": "375",
+   "ageDialogShown": true,
+   "bodyScrollLocked": true,
+   "prLabel": true,
+   "stats": {
+    "total": 4,
+    "byHost": {
+     "cnt.affiliate.fc2.com": 3,
+     "affiliate.dmm.com": 1
+    },
+    "afIds": {},
+    "channels": {},
+    "relMissing": 0,
+    "notBlank": 0,
+    "http": 0,
+    "inertOk": 4,
+    "lurlHosts": {},
+    "productIdMatch": 0,
+    "productIdMismatch": 0
+   }
+  },
+  {
+   "path": "/search/",
+   "viewport": "375",
+   "ageDialogShown": true,
+   "bodyScrollLocked": true,
+   "prLabel": true,
+   "stats": {
+    "total": 1,
+    "byHost": {
+     "affiliate.dmm.com": 1
+    },
+    "afIds": {},
+    "channels": {},
+    "relMissing": 0,
+    "notBlank": 0,
+    "http": 0,
+    "inertOk": 1,
+    "lurlHosts": {},
+    "productIdMatch": 0,
+    "productIdMismatch": 0
+   }
+  },
+  {
+   "path": "/",
+   "viewport": "1440",
+   "ageDialogShown": true,
+   "bodyScrollLocked": true,
+   "prLabel": true,
+   "stats": {
+    "total": 2,
+    "byHost": {
+     "cnt.affiliate.fc2.com": 1,
+     "affiliate.dmm.com": 1
+    },
+    "afIds": {},
+    "channels": {},
+    "relMissing": 0,
+    "notBlank": 0,
+    "http": 0,
+    "inertOk": 2,
+    "lurlHosts": {},
+    "productIdMatch": 0,
+    "productIdMismatch": 0
+   }
+  },
+  {
+   "path": "/sale/",
+   "viewport": "1440",
+   "ageDialogShown": true,
+   "bodyScrollLocked": true,
+   "prLabel": true,
+   "stats": {
+    "total": 2,
+    "byHost": {
+     "cnt.affiliate.fc2.com": 1,
+     "affiliate.dmm.com": 1
+    },
+    "afIds": {},
+    "channels": {},
+    "relMissing": 0,
+    "notBlank": 0,
+    "http": 0,
+    "inertOk": 2,
+    "lurlHosts": {},
+    "productIdMatch": 0,
+    "productIdMismatch": 0
+   }
+  },
+  {
+   "path": "/ranking/",
+   "viewport": "1440",
+   "ageDialogShown": true,
+   "bodyScrollLocked": true,
+   "prLabel": true,
+   "stats": {
+    "total": 30,
+    "byHost": {
+     "cnt.affiliate.fc2.com": 1,
+     "al.fanza.co.jp": 27,
+     "affiliate.dmm.com": 2
+    },
+    "afIds": {
+     "okazumidori-990": 27
+    },
+    "channels": {
+     "api": 27
+    },
+    "relMissing": 0,
+    "notBlank": 0,
+    "http": 0,
+    "inertOk": 30,
+    "lurlHosts": {
+     "video.dmm.co.jp": 27
+    },
+    "productIdMatch": 0,
+    "productIdMismatch": 0
+   }
+  },
+  {
+   "path": "/ranking/genre/",
+   "viewport": "1440",
+   "ageDialogShown": true,
+   "bodyScrollLocked": true,
+   "prLabel": true,
+   "stats": {
+    "total": 3,
+    "byHost": {
+     "cnt.affiliate.fc2.com": 1,
+     "affiliate.dmm.com": 2
+    },
+    "afIds": {},
+    "channels": {},
+    "relMissing": 0,
+    "notBlank": 0,
+    "http": 0,
+    "inertOk": 3,
+    "lurlHosts": {},
+    "productIdMatch": 0,
+    "productIdMismatch": 0
+   }
+  },
+  {
+   "path": "/products/",
+   "viewport": "1440",
+   "ageDialogShown": true,
+   "bodyScrollLocked": true,
+   "prLabel": true,
+   "stats": {
+    "total": 2,
+    "byHost": {
+     "cnt.affiliate.fc2.com": 1,
+     "affiliate.dmm.com": 1
+    },
+    "afIds": {},
+    "channels": {},
+    "relMissing": 0,
+    "notBlank": 0,
+    "http": 0,
+    "inertOk": 2,
+    "lurlHosts": {},
+    "productIdMatch": 0,
+    "productIdMismatch": 0
+   }
+  },
+  {
+   "path": "/products/hmn00754/",
+   "viewport": "1440",
+   "ageDialogShown": true,
+   "bodyScrollLocked": true,
+   "prLabel": true,
+   "stats": {
+    "total": 5,
+    "byHost": {
+     "cnt.affiliate.fc2.com": 1,
+     "al.fanza.co.jp": 3,
+     "affiliate.dmm.com": 1
+    },
+    "afIds": {
+     "okazumidori-990": 3
+    },
+    "channels": {
+     "api": 3
+    },
+    "relMissing": 0,
+    "notBlank": 0,
+    "http": 0,
+    "inertOk": 5,
+    "lurlHosts": {
+     "video.dmm.co.jp": 3
+    },
+    "productIdMatch": 2,
+    "productIdMismatch": 0
+   }
+  },
+  {
+   "path": "/products/exvr00858/",
+   "viewport": "1440",
+   "ageDialogShown": true,
+   "bodyScrollLocked": true,
+   "prLabel": true,
+   "stats": {
+    "total": 5,
+    "byHost": {
+     "cnt.affiliate.fc2.com": 1,
+     "al.fanza.co.jp": 3,
+     "affiliate.dmm.com": 1
+    },
+    "afIds": {
+     "okazumidori-990": 3
+    },
+    "channels": {
+     "api": 3
+    },
+    "relMissing": 0,
+    "notBlank": 0,
+    "http": 0,
+    "inertOk": 5,
+    "lurlHosts": {
+     "video.dmm.co.jp": 3
+    },
+    "productIdMatch": 2,
+    "productIdMismatch": 0
+   }
+  },
+  {
+   "path": "/fc2-adult/",
+   "viewport": "1440",
+   "ageDialogShown": true,
+   "bodyScrollLocked": true,
+   "prLabel": true,
+   "stats": {
+    "total": 14,
+    "byHost": {
+     "adult.contents.fc2.com": 11,
+     "cnt.affiliate.fc2.com": 2,
+     "affiliate.dmm.com": 1
+    },
+    "afIds": {},
+    "channels": {},
+    "relMissing": 11,
+    "notBlank": 0,
+    "http": 0,
+    "inertOk": 14,
+    "lurlHosts": {},
+    "productIdMatch": 0,
+    "productIdMismatch": 0
+   }
+  },
+  {
+   "path": "/momoiro-lab/",
+   "viewport": "1440",
+   "ageDialogShown": true,
+   "bodyScrollLocked": true,
+   "prLabel": true,
+   "stats": {
+    "total": 7,
+    "byHost": {
+     "al.fanza.co.jp": 6,
+     "affiliate.dmm.com": 1
+    },
+    "afIds": {
+     "okazumidori-990": 6
+    },
+    "channels": {
+     "api": 6
+    },
+    "relMissing": 0,
+    "notBlank": 0,
+    "http": 0,
+    "inertOk": 7,
+    "lurlHosts": {
+     "www.dmm.co.jp": 6
+    },
+    "productIdMatch": 0,
+    "productIdMismatch": 0
+   }
+  },
+  {
+   "path": "/subscription/",
+   "viewport": "1440",
+   "ageDialogShown": true,
+   "bodyScrollLocked": true,
+   "prLabel": true,
+   "stats": {
+    "total": 4,
+    "byHost": {
+     "cnt.affiliate.fc2.com": 3,
+     "affiliate.dmm.com": 1
+    },
+    "afIds": {},
+    "channels": {},
+    "relMissing": 0,
+    "notBlank": 0,
+    "http": 0,
+    "inertOk": 4,
+    "lurlHosts": {},
+    "productIdMatch": 0,
+    "productIdMismatch": 0
+   }
+  },
+  {
+   "path": "/search/",
+   "viewport": "1440",
+   "ageDialogShown": true,
+   "bodyScrollLocked": true,
+   "prLabel": true,
+   "stats": {
+    "total": 1,
+    "byHost": {
+     "affiliate.dmm.com": 1
+    },
+    "afIds": {},
+    "channels": {},
+    "relMissing": 0,
+    "notBlank": 0,
+    "http": 0,
+    "inertOk": 1,
+    "lurlHosts": {},
+    "productIdMatch": 0,
+    "productIdMismatch": 0
+   }
+  }
+ ],
+ "sitemapBefore": {
+  "site": "okazu",
+  "base": "https://okazu-yoridori-midori.pages.dev",
+  "checkedAt": "2026-11-18T13:39:18.593Z",
+  "finishedAt": "2026-11-18T13:54:57.437Z",
+  "method": "HTTP GET without JavaScript; QA/bot user agent; redirects followed manually; only <head> read",
+  "concurrency": 6,
+  "robots": {
+   "status": 200,
+   "text": "User-agent: *\nAllow: /\nSitemap: https://okazu-yoridori-midori.pages.dev/sitemap.xml\n",
+   "declaredSitemaps": [
+    "https://okazu-yoridori-midori.pages.dev/sitemap.xml"
+   ]
+  },
+  "sitemaps": [
+   {
+    "url": "https://okazu-yoridori-midori.pages.dev/sitemap.xml",
+    "status": 200,
+    "type": "urlset",
+    "entries": 15998
+   }
+  ],
+  "sitemapUrlTotal": 15998,
+  "uniqueUrls": 15998,
+  "duplicateSitemapEntries": 0,
+  "statusCounts": {
+   "200": 15998
+  },
+  "counts": {
+   "non200": 0,
+   "redirected": 0,
+   "noindex": 0,
+   "canonicalMissing": 0,
+   "canonicalMultiple": 0,
+   "canonicalMismatch": 0,
+   "errors": 0,
+   "offHost": 0,
+   "titleMissing": 0
+  },
+  "duplicateTitleGroups": 0,
+  "unknownUrlStatus": 404,
+  "problems": {
+   "non200": [],
+   "redirected": [],
+   "noindex": [],
+   "canonicalMissing": [],
+   "canonicalMultiple": [],
+   "canonicalMismatch": [],
+   "errors": [],
+   "offHost": [],
+   "titleMissing": []
+  },
+  "duplicateTitlesSample": []
+ },
+ "productionVsMain": {
+  "site": "okazu",
+  "base": "https://okazu-yoridori-midori.pages.dev",
+  "commit": "608cb06110d8200e16c8ce2ae922da46e0d25de5",
+  "checkedAt": "2026-11-18T14:11:55.092Z",
+  "compared": 27,
+  "match": 27,
+  "mismatch": [],
+  "notFound": [],
+  "errors": []
+ },
+ "screenshots": [
+  "after-articles-fanza-beginner-375.jpg",
+  "after-articles-fanza-beginner-768.jpg",
+  "after-articles-fanza-beginner-1440.jpg",
+  "after-articles-sale-guide-375.jpg",
+  "after-articles-sale-guide-768.jpg",
+  "after-articles-sale-guide-1440.jpg",
+  "after-articles-before-buy-checklist-375.jpg",
+  "after-articles-before-buy-checklist-768.jpg",
+  "after-articles-before-buy-checklist-1440.jpg",
+  "after-about-375.jpg",
+  "after-about-768.jpg",
+  "after-about-1440.jpg",
+  "after-privacy-375.jpg",
+  "after-privacy-768.jpg",
+  "after-privacy-1440.jpg",
+  "after-all-guides-375.jpg",
+  "after-all-guides-768.jpg",
+  "after-all-guides-1440.jpg"
+ ],
+ "affiliateRows": 25
+}

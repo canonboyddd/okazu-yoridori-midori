@@ -1,0 +1,56 @@
+{
+  "site": "okazu",
+  "base": "https://okazu-yoridori-midori.pages.dev",
+  "checkedAt": "2026-11-18T15:41:03.405Z",
+  "finishedAt": "2026-11-18T15:49:35.473Z",
+  "method": "HTTP GET without JavaScript; QA/bot user agent; redirects followed manually; only <head> read",
+  "concurrency": 6,
+  "robots": {
+    "status": 200,
+    "text": "User-agent: *\nAllow: /\nSitemap: https://okazu-yoridori-midori.pages.dev/sitemap.xml\n",
+    "declaredSitemaps": [
+      "https://okazu-yoridori-midori.pages.dev/sitemap.xml"
+    ]
+  },
+  "sitemaps": [
+    {
+      "url": "https://okazu-yoridori-midori.pages.dev/sitemap.xml",
+      "status": 200,
+      "type": "urlset",
+      "entries": 16038
+    }
+  ],
+  "sitemapUrlTotal": 16038,
+  "uniqueUrls": 16038,
+  "duplicateSitemapEntries": 0,
+  "statusCounts": {
+    "200": 16038
+  },
+  "counts": {
+    "non200": 0,
+    "nonHtml": 0,
+    "redirected": 0,
+    "noindex": 0,
+    "canonicalMissing": 0,
+    "canonicalMultiple": 0,
+    "canonicalMismatch": 0,
+    "errors": 0,
+    "offHost": 0,
+    "titleMissing": 0
+  },
+  "duplicateTitleGroups": 0,
+  "unknownUrlStatus": 404,
+  "problems": {
+    "non200": [],
+    "nonHtml": [],
+    "redirected": [],
+    "noindex": [],
+    "canonicalMissing": [],
+    "canonicalMultiple": [],
+    "canonicalMismatch": [],
+    "errors": [],
+    "offHost": [],
+    "titleMissing": []
+  },
+  "duplicateTitlesSample": []
+}
