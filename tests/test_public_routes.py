@@ -7,6 +7,7 @@ downloaded them. Internal links pointed at /articles/<slug>.html, which was a 40
 import re
 import sys
 import tempfile
+import textwrap
 import unittest
 from pathlib import Path
 
@@ -103,6 +104,32 @@ class StaticSitemap(unittest.TestCase):
             self.assertTrue(text.rstrip().endswith("</urlset>"))
             self.assertEqual(seo._ensure_static_pages_in_sitemap(sitemap, root), 0)
             self.assertEqual(sitemap.read_text(encoding="utf-8"), text)
+
+
+class ProductionQaWorkflow(unittest.TestCase):
+    """The post-deploy page audit is a script embedded in production-qa.yml.
+
+    Nothing else runs it before a deploy, so it once kept expecting the old
+    /about.html canonical and failed right after the pages were fixed.
+    """
+
+    def _main_page_audit(self):
+        text = (REPO / ".github" / "workflows" / "production-qa.yml").read_text(encoding="utf-8").replace("\r\n", "\n")
+        step = text.split("- name: Audit every main public page type", 1)[1]
+        body = step.split("python - <<'PY'\n", 1)[1].split("\n          PY", 1)[0]
+        return textwrap.dedent(body)
+
+    def test_embedded_audit_is_valid_python(self):
+        compile(self._main_page_audit(), "production-qa.yml main-page audit", "exec")
+
+    def test_embedded_audit_matches_the_clean_urls(self):
+        source = self._main_page_audit()
+        self.assertNotRegex(source, r'rel="canonical" href="[^"]*\.html"')
+        for path in ("'/about'", "'/privacy'", "'/articles/fanza-beginner'"):
+            self.assertIn(path, source)
+        self.assertIn("text/html", source)
+        for name in ("about", "privacy"):
+            self.assertIn(f'<link rel="canonical" href="{seo.BASE_URL}/{name}">', (PUBLIC / f"{name}.html").read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":
