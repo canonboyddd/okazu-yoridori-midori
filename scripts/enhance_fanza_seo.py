@@ -235,9 +235,69 @@ def _prune_noindex_ranking_urls() -> None:
         print(f"Pruned {len(removed)} missing/noindex ranking URLs from sitemap")
 
 
+# Editorial pages that live in the repository. build_full_catalog_upgrade.py rewrites
+# sitemap.xml from the catalog alone, which dropped these indexable pages from the
+# submitted sitemap. Clean URL -> file that Cloudflare Pages serves for it.
+STATIC_HUB_PAGES = {
+    "/all-guides/": "all-guides/index.html",
+    "/guide/": "guide/index.html",
+    "/latest/": "latest/index.html",
+    "/discover/": "discover/index.html",
+    "/reviews/": "reviews/index.html",
+    "/subscription/": "subscription/index.html",
+    "/momoiro-lab/": "momoiro-lab/index.html",
+    "/editorial-policy/": "editorial-policy/index.html",
+    "/about": "about.html",
+    "/privacy": "privacy.html",
+}
+
+
+def _static_page_urls(root: Path = Path("public")) -> list[str]:
+    """Clean URLs of the indexable editorial pages that exist as text/html files."""
+    candidates = dict(STATIC_HUB_PAGES)
+    articles = root / "articles"
+    if articles.is_dir():
+        for page in sorted(articles.glob("*.html")):
+            candidates[f"/articles/{page.stem}"] = f"articles/{page.name}"
+    urls: list[str] = []
+    for url_path, rel in candidates.items():
+        file_path = root / rel
+        if not file_path.is_file():
+            continue
+        page = file_path.read_text(encoding="utf-8", errors="ignore")
+        if re.search(r'<meta\s+name=["\']robots["\'][^>]*content=["\'][^"\']*noindex', page, flags=re.I):
+            continue
+        urls.append(url_path)
+    return urls
+
+
+def _ensure_static_pages_in_sitemap(sitemap: Path = SITEMAP, root: Path = Path("public")) -> int:
+    """Append indexable editorial pages that are missing from sitemap.xml. Idempotent."""
+    if not sitemap.exists():
+        return 0
+    text = sitemap.read_text(encoding="utf-8")
+    if "</urlset>" not in text:
+        return 0
+    existing = set(re.findall(r"<loc>\s*([^<\s]+)\s*</loc>", text))
+    today = datetime.now(timezone.utc).date().isoformat()
+    missing = [u for u in _static_page_urls(root) if BASE_URL + u not in existing]
+    if not missing:
+        return 0
+    block = "".join(
+        f"  <url><loc>{BASE_URL}{html.escape(u)}</loc><lastmod>{today}</lastmod></url>\n" for u in missing
+    )
+    head, tail = text.rsplit("</urlset>", 1)
+    if not head.endswith("\n"):
+        head += "\n"
+    sitemap.write_text(head + block + "</urlset>" + tail, encoding="utf-8")
+    print(f"Added {len(missing)} editorial pages to sitemap")
+    return len(missing)
+
+
 def main() -> None:
     if not ENTITY_DATA.exists():
         print("FANZA entity data missing; SEO enhancement skipped.")
+        _ensure_static_pages_in_sitemap()
         return
 
     payload = json.loads(ENTITY_DATA.read_text(encoding="utf-8"))
@@ -284,6 +344,7 @@ def main() -> None:
 
     _update_sitemap_lastmod(dynamic_paths)
     _prune_noindex_ranking_urls()
+    _ensure_static_pages_in_sitemap()
     print(f"SEO enhanced {len(dynamic_paths)} generated ranking URLs with JSON-LD, breadcrumbs and internal links")
 
 

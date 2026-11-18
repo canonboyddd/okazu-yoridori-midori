@@ -31,6 +31,9 @@ jobs:
       - name: Test revenue privacy and QA exclusions
         run: node --test tests/revenue-collector.test.mjs
 
+      - name: Test that every public HTML page is served as a page
+        run: python -m unittest tests/test_public_routes.py
+
       - name: Decide whether full rebuild owns this change
         id: mode
         run: |
@@ -111,7 +114,9 @@ jobs:
             cp -a snapshot/. public/
           fi
 
-          git diff --name-only "$SNAPSHOT_SHA" "$GITHUB_SHA" -- public/ > /tmp/public-changes.txt
+          # --no-renames lists both sides of a rename, so the old path is removed from the
+          # restored snapshot instead of surviving next to the new one.
+          git diff --no-renames --name-only "$SNAPSHOT_SHA" "$GITHUB_SHA" -- public/ > /tmp/public-changes.txt
           while IFS= read -r path; do
             [ -n "$path" ] || continue
             rel="${path#public/}"
@@ -125,6 +130,10 @@ jobs:
               rm -rf "$dst"
             fi
           done < /tmp/public-changes.txt
+
+      - name: Repair HTML pages restored without a .html extension
+        if: steps.mode.outputs.skip != 'true'
+        run: python scripts/normalize_public_routes.py
 
       - name: Apply fast site transformations
         if: steps.mode.outputs.skip != 'true'
@@ -177,6 +186,9 @@ jobs:
           FILE_COUNT="$(find public -type f | wc -l | tr -d ' ')"
           echo "Fast deploy file count: $FILE_COUNT"
           test "$FILE_COUNT" -le 20000
+          python scripts/normalize_public_routes.py --check
+          test -s public/articles/fanza-beginner.html
+          grep -q '/articles/fanza-beginner</loc>' public/sitemap.xml
           python -c 'import json; d=json.load(open("public/data/actress-catalog-index.json", encoding="utf-8")); assert isinstance(d.get("actresses"), list) and d["actresses"]; assert "actresss" not in d'
 
       - name: Deploy

@@ -158,6 +158,9 @@ jobs:
 
       - name: Verify production build before deploy
         run: |
+          python scripts/normalize_public_routes.py --check
+          test -s public/articles/fanza-beginner.html
+          grep -q '/articles/fanza-beginner</loc>' public/sitemap.xml
           test -s public/data/full-catalog-manifest.json
           test -s public/data/missing-actress-enrichment.json
           test -s public/data/actress-alias-groups.json
